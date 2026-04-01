@@ -4,11 +4,11 @@ import { useEffect } from "react";
 import { useFormState } from "react-dom";
 import { toast } from "sonner";
 
+import { magicLinkAction } from "@/lib/auth/actions";
 import {
   emptyState,
-  magicLinkAction,
   type AuthActionState,
-} from "@/lib/auth/actions";
+} from "@/lib/auth/form-state";
 import { FormSubmit } from "@/components/auth/form-submit";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

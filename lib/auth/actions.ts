@@ -3,15 +3,9 @@
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import type { AuthActionState } from "@/lib/auth/form-state";
 import { forgotPasswordSchema, signInSchema, signUpSchema } from "@/lib/auth/validation";
 import { ensureDefaultWorkspace } from "@/lib/workspaces/ensure-default";
-
-export type AuthActionState = {
-  error: string | null;
-  success: string | null;
-};
-
-const emptyState: AuthActionState = { error: null, success: null };
 
 function safeInternalPath(raw: FormDataEntryValue | null): string {
   if (typeof raw !== "string" || raw.length === 0) {
@@ -189,5 +183,3 @@ export async function magicLinkAction(
     success: "Vérifie ta boîte mail : un lien de connexion t’y a été envoyé.",
   };
 }
-
-export { emptyState };

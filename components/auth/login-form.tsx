@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useFormState } from "react-dom";
 
+import { signInAction } from "@/lib/auth/actions";
 import {
   emptyState,
-  signInAction,
   type AuthActionState,
-} from "@/lib/auth/actions";
+} from "@/lib/auth/form-state";
 import { FormSubmit } from "@/components/auth/form-submit";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
