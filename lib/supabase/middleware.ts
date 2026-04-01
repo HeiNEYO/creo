@@ -1,24 +1,26 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-function getSupabaseEnv(): { url: string; anonKey: string } {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
-    throw new Error(
-      "NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY doivent être définis."
-    );
-  }
-  return { url, anonKey };
-}
+import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 
 /**
  * Rafraîchit la session Supabase sur la requête entrante et renvoie la réponse
- * avec les cookies mis à jour (pattern officiel @supabase/ssr).
+ * avec les cookies mis à jour (pattern @supabase/ssr).
+ *
+ * Ne modifie pas request.cookies : en middleware Next.js, les cookies de la
+ * requête sont en lecture seule ; seule la réponse peut porter les Set-Cookie.
  */
 export function createMiddlewareSupabaseClient(request: NextRequest) {
+  const config = getSupabasePublicEnv();
+  if (!config) {
+    return {
+      supabase: null,
+      response: NextResponse.next({ request: { headers: request.headers } }),
+    } as const;
+  }
+
+  const { url, anonKey } = config;
   let response = NextResponse.next({ request: { headers: request.headers } });
-  const { url, anonKey } = getSupabaseEnv();
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {
@@ -26,10 +28,9 @@ export function createMiddlewareSupabaseClient(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => {
-          request.cookies.set(name, value);
+        response = NextResponse.next({
+          request: { headers: request.headers },
         });
-        response = NextResponse.next({ request: { headers: request.headers } });
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });
@@ -37,5 +38,5 @@ export function createMiddlewareSupabaseClient(request: NextRequest) {
     },
   });
 
-  return { supabase, response };
+  return { supabase, response } as const;
 }

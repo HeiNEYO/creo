@@ -2,16 +2,8 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
+import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 import { ensureDefaultWorkspace } from "@/lib/workspaces/ensure-default";
-
-function getSupabaseEnv(): { url: string; anonKey: string } {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!url || !anonKey) {
-    throw new Error("Configuration Supabase manquante.");
-  }
-  return { url, anonKey };
-}
 
 /**
  * Échange le code PKCE (magic link, recovery, OAuth) contre une session cookie.
@@ -27,8 +19,15 @@ export async function GET(request: Request) {
     );
   }
 
+  const config = getSupabasePublicEnv();
+  if (!config) {
+    return NextResponse.redirect(
+      `${requestUrl.origin}/login?error=${encodeURIComponent("configuration_supabase")}`
+    );
+  }
+
   const cookieStore = cookies();
-  const { url, anonKey } = getSupabaseEnv();
+  const { url, anonKey } = config;
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {

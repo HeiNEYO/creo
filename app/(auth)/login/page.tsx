@@ -7,6 +7,13 @@ type LoginPageProps = {
   searchParams: Record<string, string | string[] | undefined>;
 };
 
+function loginErrorMessage(code: string): string {
+  if (code === "configuration_supabase") {
+    return "Configuration serveur incomplète : vérifie NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY sur Vercel (Settings → Environment Variables), puis redéploie.";
+  }
+  return decodeURIComponent(code);
+}
+
 export default function LoginPage({ searchParams }: LoginPageProps) {
   const redirectTo =
     typeof searchParams.redirect === "string" ? searchParams.redirect : undefined;
@@ -28,7 +35,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       </div>
       {authError ? (
         <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {decodeURIComponent(authError)}
+          {loginErrorMessage(authError)}
         </p>
       ) : null}
       <LoginForm redirectTo={redirectTo} />
