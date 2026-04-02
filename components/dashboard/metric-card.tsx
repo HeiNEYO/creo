@@ -32,12 +32,18 @@ export function MetricCard({
           <Icon className="size-4" />
         </div>
       </div>
-      <p className="mt-4 text-creo-sm text-creo-gray-500">{label}</p>
-      <p className="mt-1 text-creo-2xl font-medium text-creo-black">{value}</p>
+      <p className="mt-4 text-creo-sm text-[#616161] dark:text-[#a3a3a3]">
+        {label}
+      </p>
+      <p className="mt-1 text-creo-2xl font-medium text-[#202223] dark:text-white">
+        {value}
+      </p>
       <p
         className={cn(
           "mt-2 text-creo-sm font-medium",
-          trendPositive ? "text-[#059669]" : "text-creo-danger"
+          trendPositive
+            ? "text-[#059669] dark:text-emerald-400"
+            : "text-creo-danger dark:text-red-400"
         )}
       >
         {trend}

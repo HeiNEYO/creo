@@ -43,14 +43,16 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
         className={cn(
           "flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-[13px] leading-snug transition-[background-color,color,box-shadow] duration-150",
           active
-            ? "bg-white font-semibold text-black shadow-[0_1px_0_rgba(0,0,0,0.04)]"
-            : "font-normal text-[#4a4a4a] hover:bg-black/[0.035]"
+            ? "bg-white font-semibold text-black shadow-[0_1px_0_rgba(0,0,0,0.04)] dark:bg-[#1a1a1a] dark:text-white dark:shadow-none dark:ring-1 dark:ring-white/[0.08]"
+            : "font-normal text-[#4a4a4a] hover:bg-black/[0.035] dark:text-[#a3a3a3] dark:hover:bg-white/[0.06]"
         )}
       >
         <Icon
           className={cn(
             "size-[18px] shrink-0 stroke-[1.5]",
-            active ? "text-black" : "text-[#4a4a4a]"
+            active
+              ? "text-black dark:text-white"
+              : "text-[#4a4a4a] dark:text-[#a3a3a3]"
           )}
         />
         <span className="min-w-0 flex-1 truncate">{label}</span>
@@ -74,11 +76,11 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
           className="flex cursor-default items-center justify-between gap-2 py-2 pl-1.5 pr-1"
           role="presentation"
         >
-          <span className="text-[12px] font-medium text-[#6d7175]">
+          <span className="text-[12px] font-medium text-[#6d7175] dark:text-[#737373]">
             Formation & accès
           </span>
           <ChevronRight
-            className="size-3.5 shrink-0 text-[#b0b3b8]"
+            className="size-3.5 shrink-0 text-[#b0b3b8] dark:text-[#525252]"
             aria-hidden
           />
         </div>
@@ -92,9 +94,9 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
   );
 
   return (
-    <div className="creo-dashboard-polaris flex min-h-screen flex-col bg-[#f6f6f7] text-[#202223]">
+    <div className="creo-dashboard-polaris flex min-h-screen flex-col bg-[#f6f6f7] text-[#202223] dark:bg-[#0b0b0b] dark:text-white">
       {/* Barre supérieure type Shopify */}
-      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-3 border-b border-black/10 bg-[#1a1a1a] px-3 md:gap-4 md:px-4">
+      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-3 border-b border-black/10 bg-[#1a1a1a] px-3 dark:border-white/10 dark:bg-[#0a0a0a] md:gap-4 md:px-4">
         <button
           type="button"
           className="flex size-9 shrink-0 items-center justify-center rounded-lg text-white/90 hover:bg-white/10 md:hidden"
@@ -146,7 +148,7 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
         {mobileOpen ? (
           <button
             type="button"
-            className="fixed inset-0 top-14 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 top-14 z-30 bg-black/40 backdrop-blur-sm dark:bg-black/60 md:hidden"
             aria-label="Fermer le menu"
             onClick={() => setMobileOpen(false)}
           />
@@ -154,12 +156,12 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
 
         <aside
           className={cn(
-            "fixed left-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-[252px] flex-col border-r border-[#d2d5d8] bg-[#ebebeb] transition-transform duration-200 md:static md:top-0 md:z-0 md:h-auto md:min-h-[calc(100dvh-3.5rem)] md:translate-x-0",
+            "fixed left-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-[252px] flex-col border-r border-[#d2d5d8] bg-[#ebebeb] transition-transform duration-200 dark:border-[#1f1f1f] dark:bg-[#111111] md:static md:top-0 md:z-0 md:h-auto md:min-h-[calc(100dvh-3.5rem)] md:translate-x-0",
             mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           )}
         >
-          <div className="flex h-12 items-center border-b border-[#d2d5d8] bg-[#ebebeb] px-4 md:hidden">
-            <span className="text-[13px] font-semibold text-[#202223]">
+          <div className="flex h-12 items-center border-b border-[#d2d5d8] bg-[#ebebeb] px-4 dark:border-[#1f1f1f] dark:bg-[#111111] md:hidden">
+            <span className="text-[13px] font-semibold text-[#202223] dark:text-white">
               Menu
             </span>
           </div>
