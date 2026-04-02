@@ -1,16 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-import { buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0 },
-};
 
 export function HomeLanding() {
   return (
@@ -31,36 +25,19 @@ export function HomeLanding() {
       </header>
 
       <section className="mx-auto max-w-4xl px-6 pb-20 pt-12 text-center md:pt-20">
-        <motion.div
-          initial="hidden"
-          animate="show"
-          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-          className="flex flex-col items-center"
-        >
-          <motion.span
-            variants={fadeUp}
-            className="inline-flex items-center gap-2 rounded-full border border-creo-gray-200 bg-creo-gray-50 px-3 py-1 text-creo-xs font-medium text-creo-gray-700"
-          >
+        <div className="flex flex-col items-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-creo-gray-200 bg-creo-gray-50 px-3 py-1 text-creo-xs font-medium text-creo-gray-700">
             <Sparkles className="size-3.5 text-creo-purple" />
             Nouveau — Tunnels adaptatifs avec IA
-          </motion.span>
-          <motion.h1
-            variants={fadeUp}
-            className="mt-8 max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight md:text-5xl md:leading-tight"
-          >
+          </span>
+          <h1 className="mt-8 max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight md:text-5xl md:leading-tight">
             La plateforme qui vend et enseigne à votre place
-          </motion.h1>
-          <motion.p
-            variants={fadeUp}
-            className="mt-6 max-w-2xl text-lg text-creo-gray-600 md:text-xl"
-          >
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg text-creo-gray-600 md:text-xl">
             Crée, vends et gère tes formations en ligne. Tout ce dont tu as
             besoin, enfin réuni.
-          </motion.p>
-          <motion.div
-            variants={fadeUp}
-            className="mt-10 flex flex-wrap justify-center gap-3"
-          >
+          </p>
+          <div className="mt-10 flex flex-wrap justify-center gap-3">
             <Link
               href="/register"
               className={cn(buttonVariants({ size: "lg" }), "gap-2 px-6")}
@@ -74,26 +51,18 @@ export function HomeLanding() {
             >
               Voir la démo
             </Link>
-          </motion.div>
-          <motion.p
-            variants={fadeUp}
-            className="mt-8 text-creo-sm text-creo-gray-500"
-          >
+          </div>
+          <p className="mt-8 text-creo-sm text-creo-gray-500">
             Rejoint par 2 400+ infopreneurs
-          </motion.p>
-        </motion.div>
+          </p>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.5 }}
-          className="mx-auto mt-16 max-w-5xl rounded-creo-xl border border-creo-gray-200 bg-creo-gray-50 p-2 shadow-creo-card"
-        >
+        <div className="mx-auto mt-16 max-w-5xl rounded-creo-xl border border-creo-gray-200 bg-creo-gray-50 p-2 shadow-creo-card">
           <div className="aspect-[16/9] rounded-lg bg-gradient-to-br from-creo-purple-pale to-white" />
           <p className="py-3 text-center text-creo-xs text-creo-gray-400">
             Aperçu du cockpit — données fictives
           </p>
-        </motion.div>
+        </div>
       </section>
 
       <section className="border-t border-creo-gray-100 bg-creo-gray-50 py-20">
@@ -107,7 +76,10 @@ export function HomeLanding() {
               ["Données éparpillées", "Analytics Meta ≠ revenus réels."],
               ["Élèves qui n’avancent pas", "Pas de suivi de complétion clair."],
             ].map(([t, d]) => (
-              <div key={t} className="rounded-creo-lg border border-creo-gray-200 bg-creo-white p-6">
+              <div
+                key={t}
+                className="rounded-creo-lg border border-creo-gray-200 bg-creo-white p-6"
+              >
                 <p className="text-lg text-creo-danger">✕</p>
                 <h3 className="mt-2 text-creo-md font-semibold">{t}</h3>
                 <p className="mt-2 text-creo-sm text-creo-gray-500">{d}</p>
@@ -119,7 +91,9 @@ export function HomeLanding() {
 
       <section className="py-20">
         <div className="mx-auto max-w-6xl px-6 text-center">
-          <h2 className="text-creo-2xl font-semibold">Avec CRÉO, tout est connecté</h2>
+          <h2 className="text-creo-2xl font-semibold">
+            Avec CRÉO, tout est connecté
+          </h2>
           <p className="mx-auto mt-4 max-w-2xl text-creo-base text-creo-gray-500">
             Pages, formations, emails, analytics — un seul abonnement, une seule
             vérité sur ton business.

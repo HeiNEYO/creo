@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import {
   DollarSign,
   GraduationCap,
@@ -10,15 +9,10 @@ import {
 } from "lucide-react";
 
 import { MetricCard } from "@/components/dashboard/metric-card";
+import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const RevenueChart = dynamic(
-  () =>
-    import("@/components/dashboard/revenue-chart").then((m) => m.RevenueChart),
-  { ssr: false, loading: () => <div className="h-[280px] animate-pulse rounded-creo-lg bg-creo-gray-100" /> }
-);
 
 const activities = [
   {
