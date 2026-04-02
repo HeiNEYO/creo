@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 import { createMiddlewareSupabaseClient } from "@/lib/supabase/middleware";
+import { readAuthUser } from "@/lib/supabase/read-auth-user";
 
 function isProtectedPath(path: string) {
   return (
@@ -28,9 +29,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
 
   if (isProtectedPath(path) && !user) {
     const redirectUrl = new URL("/login", request.url);

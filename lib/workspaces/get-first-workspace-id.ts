@@ -8,14 +8,18 @@ export async function getFirstWorkspaceIdForUser(
   supabase: SupabaseClient,
   userId: string
 ): Promise<string | null> {
-  const { data, error } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("user_id", userId)
-    .limit(1);
+  try {
+    const { data, error } = await supabase
+      .from("workspace_members")
+      .select("workspace_id")
+      .eq("user_id", userId)
+      .limit(1);
 
-  if (error || !data?.[0]) {
+    if (error || !data?.[0]) {
+      return null;
+    }
+    return data[0].workspace_id;
+  } catch {
     return null;
   }
-  return data[0].workspace_id;
 }

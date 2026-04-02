@@ -1,3 +1,4 @@
+import { readAuthUser } from "@/lib/supabase/read-auth-user";
 import { createClient } from "@/lib/supabase/server";
 import { ensureDefaultWorkspaceSafe } from "@/lib/workspaces/ensure-default";
 import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
@@ -15,9 +16,7 @@ export type WorkspaceContext = {
  */
 export async function getWorkspaceContext(): Promise<WorkspaceContext> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
 
   if (!user) {
     return { supabase, user: null, workspaceId: null };

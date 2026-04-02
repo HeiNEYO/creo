@@ -18,6 +18,10 @@ export async function ensureDefaultWorkspace(
 export async function ensureDefaultWorkspaceSafe(
   supabase: SupabaseClient
 ): Promise<boolean> {
-  const { error } = await supabase.rpc("ensure_default_workspace");
-  return !error;
+  try {
+    const { error } = await supabase.rpc("ensure_default_workspace");
+    return !error;
+  } catch {
+    return false;
+  }
 }

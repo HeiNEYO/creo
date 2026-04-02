@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { readAuthUser } from "@/lib/supabase/read-auth-user";
 import { createClient } from "@/lib/supabase/server";
 import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
 
@@ -19,9 +20,7 @@ export async function updateCourseServer(input: {
   status?: "draft" | "published";
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }
@@ -69,9 +68,7 @@ export async function createCourseModuleServer(input: {
   title?: string;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }
@@ -112,9 +109,7 @@ export async function updateCourseModuleServer(input: {
   title: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }
@@ -142,9 +137,7 @@ export async function deleteCourseModuleServer(input: {
   courseId: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }
@@ -169,9 +162,7 @@ export async function createCourseLessonServer(input: {
   contentType?: "video" | "text" | "pdf" | "audio";
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }
@@ -219,9 +210,7 @@ export async function updateCourseLessonServer(input: {
   is_free_preview?: boolean;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }
@@ -272,9 +261,7 @@ export async function deleteCourseLessonServer(input: {
   courseId: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }
@@ -296,9 +283,7 @@ export async function createCourseServer(input: {
   title: string;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }

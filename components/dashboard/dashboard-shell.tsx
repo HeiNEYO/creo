@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 
@@ -12,19 +11,6 @@ import {
   learnNavItem,
 } from "@/components/dashboard/nav-config";
 import { cn } from "@/lib/utils";
-
-const listVariants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.04, delayChildren: 0.05 },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, x: -6 },
-  show: { opacity: 1, x: 0 },
-};
 
 type DashboardShellProps = {
   userEmail: string;
@@ -77,22 +63,17 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
         </Link>
       </div>
       <nav className="flex-1 overflow-y-auto p-3">
-        <motion.ul
-          className="space-y-1"
-          variants={listVariants}
-          initial="hidden"
-          animate="show"
-        >
+        <ul className="space-y-1">
           {dashboardNavItems.map((item) => (
-            <motion.li key={item.href} variants={itemVariants}>
+            <li key={item.href}>
               <NavLink {...item} />
-            </motion.li>
+            </li>
           ))}
-          <motion.li variants={itemVariants} className="pt-2">
+          <li className="pt-2">
             <div className="my-2 border-t border-creo-gray-100" />
             <NavLink {...learnNavItem} />
-          </motion.li>
-        </motion.ul>
+          </li>
+        </ul>
       </nav>
     </>
   );

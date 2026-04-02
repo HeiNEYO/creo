@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { readAuthUser } from "@/lib/supabase/read-auth-user";
 import { createClient } from "@/lib/supabase/server";
 import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
 
@@ -19,9 +20,7 @@ export async function updateWorkspaceServer(input: {
   slug: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
   if (!user) {
     return { ok: false, error: "Non connecté." };
   }

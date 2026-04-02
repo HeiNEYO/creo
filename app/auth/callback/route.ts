@@ -7,6 +7,7 @@ import {
   CREO_REMEMBER_COOKIE,
 } from "@/lib/supabase/auth-session-preference";
 import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
+import { readAuthUser } from "@/lib/supabase/read-auth-user";
 import { ensureDefaultWorkspace } from "@/lib/workspaces/ensure-default";
 
 /**
@@ -65,9 +66,7 @@ export async function GET(request: Request) {
     );
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
 
   if (user) {
     try {

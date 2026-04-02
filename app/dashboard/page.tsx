@@ -1,14 +1,13 @@
 import { redirect } from "next/navigation";
 
 import { CockpitView } from "@/components/dashboard/cockpit-view";
+import { readAuthUser } from "@/lib/supabase/read-auth-user";
 import { createClient } from "@/lib/supabase/server";
 import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
 
 export default async function DashboardHomePage() {
   const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await readAuthUser(supabase);
 
   if (!user) {
     redirect("/login");
