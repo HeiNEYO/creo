@@ -11,6 +11,8 @@ const Card = React.forwardRef<
 >(({ className, interactive, ...props }, ref) => (
   <div
     ref={ref}
+    data-creo-card=""
+    data-interactive={interactive ? "" : undefined}
     className={cn(
       "rounded-creo-lg border border-creo-gray-200 bg-creo-white p-5 text-creo-black shadow-none sm:p-6",
       "dark:border-border dark:bg-card dark:text-card-foreground",

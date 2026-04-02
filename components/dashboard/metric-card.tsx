@@ -21,7 +21,7 @@ export function MetricCard({
   trendPositive = true,
 }: MetricCardProps) {
   return (
-    <Card className="p-5">
+    <Card className="rounded-2xl p-5 sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div
           className={cn(

@@ -11,6 +11,34 @@
   }
 }
 
+@layer components {
+  /**
+   * Shell dashboard « Polaris / Shopify admin » : cartes toujours claires
+   * même si html.dark (thème marketing / auth reste sombre).
+   */
+  .creo-dashboard-polaris [data-creo-card] {
+    border-color: #e3e5e8;
+    background-color: #ffffff;
+    color: #202223;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  }
+  .dark .creo-dashboard-polaris [data-creo-card] {
+    border-color: #e3e5e8;
+    background-color: #ffffff;
+    color: #202223;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+  }
+  .creo-dashboard-polaris [data-creo-card][data-interactive] {
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  .creo-dashboard-polaris [data-creo-card][data-interactive]:hover {
+    border-color: #c9cccf;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+}
+
 @layer base {
   .theme {
     --font-heading: var(--font-sans);

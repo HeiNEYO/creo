@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -17,6 +17,7 @@ type DashboardShellProps = {
   children: React.ReactNode;
 };
 
+/** DA type admin Shopify : barre sup #1a1a1a, rail #f1f1f1, fond contenu #f6f6f7. */
 export function DashboardShell({ userEmail, children }: DashboardShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -40,13 +41,18 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
         href={href}
         onClick={() => setMobileOpen(false)}
         className={cn(
-          "flex items-center gap-3 rounded-creo-md px-3 py-2 text-creo-sm font-medium transition-colors",
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-creo-sm transition-colors",
           active
-            ? "bg-creo-purple-pale text-creo-purple"
-            : "text-creo-gray-700 hover:bg-creo-gray-100 dark:text-creo-gray-500 dark:hover:bg-white/[0.06]"
+            ? "bg-white font-semibold text-[#202223] shadow-sm ring-1 ring-black/[0.06]"
+            : "font-medium text-[#616161] hover:bg-black/[0.04]"
         )}
       >
-        <Icon className="size-4 shrink-0 opacity-80" />
+        <Icon
+          className={cn(
+            "size-4 shrink-0",
+            active ? "text-[#202223]" : "text-[#616161]"
+          )}
+        />
         {label}
       </Link>
     );
@@ -54,23 +60,15 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
 
   const sidebarInner = (
     <>
-      <div className="flex h-14 items-center border-b border-creo-gray-200 px-4">
-        <Link
-          href="/dashboard"
-          className="text-lg font-medium tracking-tight text-creo-purple"
-        >
-          CRÉO
-        </Link>
-      </div>
-      <nav className="flex-1 overflow-y-auto p-3">
-        <ul className="space-y-1">
+      <nav className="flex-1 overflow-y-auto p-3 pt-2 md:pt-4">
+        <ul className="space-y-0.5">
           {dashboardNavItems.map((item) => (
             <li key={item.href}>
               <NavLink {...item} />
             </li>
           ))}
-          <li className="pt-2">
-            <div className="my-2 border-t border-creo-gray-200" />
+          <li className="pt-3">
+            <div className="my-2 border-t border-[#e3e5e8]" />
             <NavLink {...learnNavItem} />
           </li>
         </ul>
@@ -79,51 +77,83 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
   );
 
   return (
-    <div className="min-h-screen bg-creo-gray-50">
-      {/* Mobile overlay */}
-      {mobileOpen ? (
+    <div className="creo-dashboard-polaris flex min-h-screen flex-col bg-[#f6f6f7] text-[#202223]">
+      {/* Barre supérieure type Shopify */}
+      <header className="sticky top-0 z-50 flex h-14 shrink-0 items-center gap-3 border-b border-black/10 bg-[#1a1a1a] px-3 md:gap-4 md:px-4">
         <button
           type="button"
-          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm md:hidden"
-          aria-label="Fermer le menu"
-          onClick={() => setMobileOpen(false)}
-        />
-      ) : null}
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-white/90 hover:bg-white/10 md:hidden"
+          onClick={() => setMobileOpen((o) => !o)}
+          aria-expanded={mobileOpen}
+          aria-label="Menu"
+        >
+          {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+        </button>
 
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-56 flex-col border-r border-creo-gray-200 bg-creo-white transition-transform duration-200 md:translate-x-0",
-          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        )}
-      >
-        {sidebarInner}
-      </aside>
+        <Link
+          href="/dashboard"
+          className="shrink-0 text-lg font-semibold tracking-tight text-white"
+        >
+          CRÉO
+        </Link>
 
-      <div className="md:pl-56">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b border-creo-gray-200 bg-creo-white/95 px-4 backdrop-blur-sm md:px-6">
-          <button
-            type="button"
-            className="flex size-9 items-center justify-center rounded-creo-md border border-creo-gray-200 md:hidden"
-            onClick={() => setMobileOpen((o) => !o)}
-            aria-expanded={mobileOpen}
-            aria-label="Menu"
-          >
-            {mobileOpen ? (
-              <X className="size-4" />
-            ) : (
-              <Menu className="size-4" />
-            )}
-          </button>
-          <div className="hidden flex-1 md:block" />
-          <div className="flex items-center gap-3">
-            <span className="hidden max-w-[220px] truncate text-creo-sm text-creo-gray-500 sm:inline">
+        <div className="relative mx-auto hidden min-w-0 flex-1 md:block md:max-w-xl">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/35"
+            aria-hidden
+          />
+          <input
+            type="search"
+            readOnly
+            placeholder="Rechercher"
+            className="h-9 w-full cursor-default rounded-lg border-0 bg-white/10 pl-10 pr-16 text-sm text-white placeholder:text-white/40 outline-none ring-1 ring-inset ring-white/10"
+            aria-label="Rechercher (bientôt disponible)"
+          />
+          <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-sans text-[10px] font-medium text-white/45 sm:inline-block">
+            ⌘K
+          </kbd>
+        </div>
+
+        <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="hidden min-w-0 flex-col items-end text-right sm:flex">
+            <span className="max-w-[200px] truncate text-xs text-white/85">
+              Mon espace
+            </span>
+            <span className="max-w-[200px] truncate text-[11px] text-white/50">
               {userEmail}
             </span>
-            <SignOutButton />
           </div>
-        </header>
-        <main className="mx-auto max-w-[1600px] p-4 md:p-6">{children}</main>
+          <SignOutButton tone="onDark" />
+        </div>
+      </header>
+
+      <div className="relative flex min-h-0 flex-1">
+        {mobileOpen ? (
+          <button
+            type="button"
+            className="fixed inset-0 top-14 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+            aria-label="Fermer le menu"
+            onClick={() => setMobileOpen(false)}
+          />
+        ) : null}
+
+        <aside
+          className={cn(
+            "fixed left-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-[240px] flex-col border-r border-[#e3e5e8] bg-[#f1f1f1] transition-transform duration-200 md:static md:top-0 md:z-0 md:h-auto md:min-h-[calc(100dvh-3.5rem)] md:translate-x-0",
+            mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          )}
+        >
+          <div className="flex h-12 items-center border-b border-[#e3e5e8] px-4 md:hidden">
+            <span className="text-creo-sm font-semibold text-[#202223]">
+              Navigation
+            </span>
+          </div>
+          {sidebarInner}
+        </aside>
+
+        <main className="min-w-0 flex-1 p-4 md:p-6 lg:p-8">
+          <div className="mx-auto max-w-[1600px]">{children}</div>
+        </main>
       </div>
     </div>
   );

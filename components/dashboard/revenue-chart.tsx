@@ -10,6 +10,8 @@ import {
   YAxis,
 } from "recharts";
 
+import { cn } from "@/lib/utils";
+
 const data = [
   { d: "Lun", v: 2100 },
   { d: "Mar", v: 2800 },
@@ -42,6 +44,16 @@ const FALLBACK: ChartColors = {
   primary: "#0033ff",
 };
 
+/** Palette fixe pour dashboard type Shopify (fond clair même si thème global = dark). */
+const LIGHT_SURFACE: ChartColors = {
+  grid: "#e3e5e8",
+  tick: "#616161",
+  tooltipBorder: "#e3e5e8",
+  tooltipBg: "#ffffff",
+  tooltipFg: "#202223",
+  primary: "#0033ff",
+};
+
 function readChartColors(): ChartColors {
   if (typeof document === "undefined") return FALLBACK;
   const s = getComputedStyle(document.documentElement);
@@ -60,24 +72,38 @@ function readChartColors(): ChartColors {
   };
 }
 
-export function RevenueChart() {
+type RevenueChartProps = {
+  /** `light` = couleurs type admin clair (ignore le thème global). */
+  appearance?: "auto" | "light";
+};
+
+export function RevenueChart({ appearance = "auto" }: RevenueChartProps) {
   const [mounted, setMounted] = useState(false);
-  const [colors, setColors] = useState<ChartColors>(FALLBACK);
+  const [colors, setColors] = useState<ChartColors>(
+    appearance === "light" ? LIGHT_SURFACE : FALLBACK
+  );
 
   useEffect(() => {
     setMounted(true);
+    if (appearance === "light") {
+      setColors(LIGHT_SURFACE);
+      return;
+    }
     const root = document.documentElement;
     const sync = () => setColors(readChartColors());
     sync();
     const obs = new MutationObserver(sync);
     obs.observe(root, { attributes: true, attributeFilter: ["class"] });
     return () => obs.disconnect();
-  }, []);
+  }, [appearance]);
 
   if (!mounted) {
     return (
       <div
-        className="h-[260px] w-full animate-pulse rounded-md bg-creo-gray-100"
+        className={cn(
+          "h-[260px] w-full animate-pulse rounded-md",
+          appearance === "light" ? "bg-[#ebebeb]" : "bg-creo-gray-100"
+        )}
         aria-hidden
       />
     );

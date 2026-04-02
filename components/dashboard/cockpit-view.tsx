@@ -13,6 +13,7 @@ import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const activities = [
   {
@@ -39,6 +40,8 @@ const suggestions = [
   "Ton CPL Meta a augmenté de 18% →",
 ];
 
+const periodPresets = ["7j", "30j", "90j", "12m"] as const;
+
 type WorkspaceInfo = {
   name: string;
   slug: string;
@@ -49,18 +52,26 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-creo-2xl font-medium text-creo-black">
-          Cockpit
+        <h1 className="text-2xl font-semibold tracking-tight text-[#202223] md:text-[28px] md:leading-tight">
+          Tableau de bord
         </h1>
-        <p className="mt-1 text-creo-base text-creo-gray-500">
-          Vue d’ensemble de ton activité — inspirée des dashboards modernes.
+        <p className="mt-1 max-w-2xl text-sm text-[#616161] md:text-[15px]">
+          Vue d’ensemble de ton activité — même esprit que les admins SaaS
+          modernes (Shopify, Polaris).
         </p>
         {workspace ? (
-          <p className="mt-2 text-creo-sm text-creo-gray-500">
+          <p className="mt-3 text-creo-sm text-[#616161]">
             Workspace{" "}
-            <span className="font-medium text-creo-black">{workspace.name}</span>{" "}
+            <span className="font-semibold text-[#202223]">
+              {workspace.name}
+            </span>{" "}
             · /{workspace.slug} ·{" "}
-            <Badge variant="purple">{workspace.plan}</Badge>
+            <Badge
+              variant="outline"
+              className="border-[#e3e5e8] bg-white font-medium text-[#202223]"
+            >
+              {workspace.plan}
+            </Badge>
           </p>
         ) : null}
       </div>
@@ -70,7 +81,7 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
           label="CA du mois"
           value="4 280 €"
           icon={DollarSign}
-          iconClassName="bg-creo-success-pale text-[#059669]"
+          iconClassName="rounded-lg bg-emerald-50 text-emerald-700"
           trend="▲ 23% vs mois dernier"
           trendPositive
         />
@@ -78,7 +89,7 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
           label="Nouveaux contacts"
           value="147"
           icon={UserPlus}
-          iconClassName="bg-creo-info-pale text-[#2563eb]"
+          iconClassName="rounded-lg bg-sky-50 text-sky-700"
           trend="▲ 12%"
           trendPositive
         />
@@ -86,7 +97,7 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
           label="Élèves actifs"
           value="89"
           icon={GraduationCap}
-          iconClassName="bg-creo-purple-pale text-creo-purple"
+          iconClassName="rounded-lg bg-violet-50 text-violet-700"
           trend="▲ 8%"
           trendPositive
         />
@@ -94,28 +105,36 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
           label="Taux de complétion"
           value="54%"
           icon={TrendingUp}
-          iconClassName="bg-creo-warning-pale text-[#d97706]"
+          iconClassName="rounded-lg bg-amber-50 text-amber-700"
           trend="▼ 3% vs mois dernier"
           trendPositive={false}
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle>Chiffre d’affaires</CardTitle>
-            <div className="flex gap-1">
-              {["7j", "30j", "90j", "12m"].map((p) => (
+        <Card className="rounded-2xl lg:col-span-2">
+          <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3 pb-2">
+            <div>
+              <CardTitle className="text-base font-semibold text-[#202223]">
+                Chiffre d’affaires
+              </CardTitle>
+              <p className="mt-0.5 text-creo-sm text-[#616161]">
+                Évolution sur la période sélectionnée
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {periodPresets.map((p) => (
                 <Button
                   key={p}
                   type="button"
-                  variant={p === "30j" ? "secondary" : "ghost"}
+                  variant="ghost"
                   size="sm"
-                  className={
+                  className={cn(
+                    "h-8 rounded-lg border px-2.5 text-xs font-medium",
                     p === "30j"
-                      ? "bg-creo-purple-pale text-creo-purple hover:bg-creo-purple-pale"
-                      : ""
-                  }
+                      ? "border-[#e3e5e8] bg-[#ebebeb] text-[#202223] shadow-sm"
+                      : "border-transparent text-[#616161] hover:bg-black/[0.04]"
+                  )}
                 >
                   {p}
                 </Button>
@@ -123,41 +142,47 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
             </div>
           </CardHeader>
           <CardContent>
-            <RevenueChart />
+            <RevenueChart appearance="light" />
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-creo-md">Activité récente</CardTitle>
+        <Card className="rounded-2xl">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-[#202223]">
+              Activité récente
+            </CardTitle>
+            <p className="text-creo-sm font-normal text-[#616161]">
+              Dernières actions sur ton compte
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-0">
             {activities.map((a, i) => (
               <div
                 key={i}
-                className="flex gap-3 border-b border-creo-gray-100 pb-4 last:border-0 last:pb-0"
+                className={cn(
+                  "flex gap-3 py-4",
+                  i < activities.length - 1 && "border-b border-[#e3e5e8]"
+                )}
               >
-                <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-creo-gray-100 text-creo-xs font-semibold text-creo-gray-700">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#ebebeb] text-xs font-semibold text-[#616161]">
                   {a.who
                     .split(" ")
                     .map((x) => x[0])
                     .join("")}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-creo-sm text-creo-black">
-                    <span className="font-medium">{a.who}</span> {a.action}
+                  <p className="text-sm text-[#202223]">
+                    <span className="font-semibold">{a.who}</span> {a.action}
                   </p>
                   <div className="mt-1 flex items-center justify-between gap-2">
                     {a.amount ? (
-                      <span className="text-creo-sm font-medium text-[#059669]">
+                      <span className="text-sm font-semibold text-emerald-700">
                         {a.amount}
                       </span>
                     ) : (
                       <span />
                     )}
-                    <span className="text-creo-xs text-creo-gray-400">
-                      {a.when}
-                    </span>
+                    <span className="text-xs text-[#8c9196]">{a.when}</span>
                   </div>
                 </div>
               </div>
@@ -166,21 +191,25 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
         </Card>
       </div>
 
-      <Card className="border-creo-purple-pale bg-creo-purple-pale/40">
+      <Card className="rounded-2xl border-[#e3e5e8] bg-[#fafbfb]">
         <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-start">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-creo-md bg-creo-purple-pale text-creo-purple">
-            <Sparkles className="size-5" />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm ring-1 ring-[#e3e5e8]">
+            <Sparkles className="size-5 text-[#0033ff]" />
           </div>
-          <div className="flex-1 space-y-3">
-            <h2 className="text-creo-md font-semibold text-creo-black">
+          <div className="min-w-0 flex-1 space-y-3">
+            <h2 className="text-base font-semibold text-[#202223]">
               Actions recommandées
             </h2>
+            <p className="text-sm text-[#616161]">
+              Pistes rapides — à traiter comme des rappels dans ton flux de
+              travail.
+            </p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((s) => (
                 <button
                   key={s}
                   type="button"
-                  className="rounded-full border border-creo-purple/20 bg-creo-white px-3 py-1.5 text-left text-creo-sm text-creo-purple transition-colors hover:border-creo-purple/40"
+                  className="rounded-full border border-[#e3e5e8] bg-white px-3 py-1.5 text-left text-sm text-[#202223] shadow-sm transition-colors hover:border-[#c9cccf] hover:bg-[#f6f6f7]"
                 >
                   {s}
                 </button>
