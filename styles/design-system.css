@@ -1,0 +1,153 @@
+/**
+ * CRÉO — Design System (étape 1)
+ * Variables sémantiques + pont vers les tokens shadcn utilisés par le thème.
+ */
+
+:root {
+  /* Primaires */
+  --creo-purple: #7c3aed;
+  --creo-purple-light: #8b5cf6;
+  --creo-purple-pale: #f5f3ff;
+  --creo-purple-dark: #6d28d9;
+
+  /* Neutres */
+  --creo-black: #09090b;
+  --creo-gray-900: #18181b;
+  --creo-gray-700: #3f3f46;
+  --creo-gray-500: #71717a;
+  --creo-gray-400: #a1a1aa;
+  --creo-gray-300: #d4d4d8;
+  --creo-gray-200: #e4e4e7;
+  --creo-gray-100: #f4f4f5;
+  --creo-gray-50: #fafafa;
+  --creo-white: #ffffff;
+
+  /* Sémantiques */
+  --creo-success: #10b981;
+  --creo-success-pale: #ecfdf5;
+  --creo-warning: #f59e0b;
+  --creo-warning-pale: #fffbeb;
+  --creo-danger: #ef4444;
+  --creo-danger-pale: #fef2f2;
+  --creo-info: #3b82f6;
+  --creo-info-pale: #eff6ff;
+
+  /* Espacements (4px) */
+  --creo-space-1: 4px;
+  --creo-space-2: 8px;
+  --creo-space-3: 12px;
+  --creo-space-4: 16px;
+  --creo-space-5: 20px;
+  --creo-space-6: 24px;
+  --creo-space-8: 32px;
+  --creo-space-10: 40px;
+  --creo-space-12: 48px;
+  --creo-space-16: 64px;
+
+  /* Rayons */
+  --creo-radius-sm: 6px;
+  --creo-radius-md: 8px;
+  --creo-radius-lg: 12px;
+  --creo-radius-xl: 16px;
+  --creo-radius-full: 9999px;
+
+  /* Typographie (échelle UI) */
+  --creo-text-xs: 11px;
+  --creo-text-sm: 13px;
+  --creo-text-base: 14px;
+  --creo-text-md: 15px;
+  --creo-text-lg: 18px;
+  --creo-text-xl: 22px;
+  --creo-text-2xl: 28px;
+  --creo-text-3xl: 36px;
+
+  --creo-leading-xs: 1.4;
+  --creo-leading-sm: 1.5;
+  --creo-leading-base: 1.6;
+  --creo-leading-md: 1.6;
+  --creo-leading-lg: 1.5;
+  --creo-leading-xl: 1.4;
+  --creo-leading-2xl: 1.3;
+  --creo-leading-3xl: 1.2;
+
+  /* Ombres (modales / dropdowns uniquement) */
+  --creo-shadow-elevated:
+    0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -1px rgb(0 0 0 / 0.04);
+  --creo-shadow-card-hover: 0 2px 8px rgb(0 0 0 / 0.06);
+  --creo-shadow-modal: 0 4px 6px -1px rgb(0 0 0 / 0.07),
+    0 2px 4px -1px rgb(0 0 0 / 0.04);
+
+  /* Focus input */
+  --creo-ring-purple: rgb(124 58 237 / 0.15);
+
+  /* ─── Pont shadcn / thème app (clair) ─── */
+  --background: var(--creo-white);
+  --foreground: var(--creo-black);
+  --card: var(--creo-white);
+  --card-foreground: var(--creo-black);
+  --popover: var(--creo-white);
+  --popover-foreground: var(--creo-black);
+  --primary: var(--creo-purple);
+  --primary-foreground: var(--creo-white);
+  --secondary: var(--creo-gray-100);
+  --secondary-foreground: var(--creo-gray-900);
+  --muted: var(--creo-gray-100);
+  --muted-foreground: var(--creo-gray-500);
+  --accent: var(--creo-purple-pale);
+  --accent-foreground: var(--creo-purple);
+  --destructive: var(--creo-danger);
+  --border: var(--creo-gray-300);
+  --input: var(--creo-gray-300);
+  --ring: var(--creo-purple);
+  --radius: var(--creo-radius-md);
+  --radius-md: var(--creo-radius-md);
+
+  /* Charts / sidebar (compat shadcn) */
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: #0f0f0f;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: var(--creo-purple);
+  --primary-foreground: #ffffff;
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #2e1064;
+  --accent-foreground: #e9d5ff;
+  --destructive: #f87171;
+  --border: rgb(255 255 255 / 0.1);
+  --input: rgb(255 255 255 / 0.15);
+  --ring: #a78bfa;
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}

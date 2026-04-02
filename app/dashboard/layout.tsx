@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { SignOutButton } from "@/components/auth/sign-out-button";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -21,19 +20,6 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa]">
-      <header className="flex h-14 items-center justify-between border-b border-border bg-background px-6">
-        <Link href="/dashboard" className="font-semibold text-primary">
-          CRÉO
-        </Link>
-        <div className="flex items-center gap-4">
-          <span className="max-w-[200px] truncate text-sm text-muted-foreground">
-            {user.email}
-          </span>
-          <SignOutButton />
-        </div>
-      </header>
-      <main className="p-6">{children}</main>
-    </div>
+    <DashboardShell userEmail={user.email ?? ""}>{children}</DashboardShell>
   );
 }

@@ -3,11 +3,19 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 import { createMiddlewareSupabaseClient } from "@/lib/supabase/middleware";
 
+function isProtectedPath(path: string) {
+  return (
+    path.startsWith("/dashboard") ||
+    path.startsWith("/builder") ||
+    path.startsWith("/learn")
+  );
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   if (!getSupabasePublicEnv()) {
-    if (path.startsWith("/dashboard")) {
+    if (isProtectedPath(path)) {
       const u = new URL("/login", request.url);
       u.searchParams.set("error", "configuration_supabase");
       return NextResponse.redirect(u);
@@ -24,7 +32,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (path.startsWith("/dashboard") && !user) {
+  if (isProtectedPath(path) && !user) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("redirect", path);
     return NextResponse.redirect(redirectUrl);
@@ -43,6 +51,8 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/builder/:path*",
+    "/learn/:path*",
     "/login",
     "/register",
     "/forgot-password",

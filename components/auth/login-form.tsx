@@ -120,7 +120,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           required
         />
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" className="w-full" size="lg" disabled={pending}>
         {pending ? "Connexion…" : "Se connecter"}
       </Button>
     </form>

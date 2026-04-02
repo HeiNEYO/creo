@@ -1,9 +1,9 @@
-import { AuthShell } from "@/components/auth/auth-shell";
+import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 
 export default function ResetPasswordLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthShell>{children}</AuthShell>;
+  return <AuthSplitLayout>{children}</AuthSplitLayout>;
 }
