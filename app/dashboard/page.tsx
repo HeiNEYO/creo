@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 
 import { CockpitView } from "@/components/dashboard/cockpit-view";
 import { createClient } from "@/lib/supabase/server";
+import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
 
 export default async function DashboardHomePage() {
   const supabase = createClient();
@@ -13,13 +14,7 @@ export default async function DashboardHomePage() {
     redirect("/login");
   }
 
-  const { data: members } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
-    .eq("user_id", user.id)
-    .limit(1);
-
-  const workspaceId = members?.[0]?.workspace_id;
+  const workspaceId = await getFirstWorkspaceIdForUser(supabase, user.id);
 
   const { data: workspace } = workspaceId
     ? await supabase

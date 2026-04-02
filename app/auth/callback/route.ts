@@ -2,6 +2,10 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
+import {
+  authCookieMaxAge,
+  CREO_REMEMBER_COOKIE,
+} from "@/lib/supabase/auth-session-preference";
 import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 import { ensureDefaultWorkspace } from "@/lib/workspaces/ensure-default";
 
@@ -29,6 +33,7 @@ export async function GET(request: Request) {
 
   const { url, anonKey } = config;
   const cookieStore = cookies();
+  const rememberVal = cookieStore.get(CREO_REMEMBER_COOKIE)?.value;
 
   const redirectToApp = () =>
     NextResponse.redirect(`${origin}${safeNext}`);
@@ -36,6 +41,9 @@ export async function GET(request: Request) {
   let response = redirectToApp();
 
   const supabase = createServerClient(url, anonKey, {
+    cookieOptions: {
+      maxAge: authCookieMaxAge(rememberVal),
+    },
     cookies: {
       getAll() {
         return cookieStore.getAll();

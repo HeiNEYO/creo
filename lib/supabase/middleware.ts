@@ -1,6 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  authCookieMaxAge,
+  CREO_REMEMBER_COOKIE,
+} from "@/lib/supabase/auth-session-preference";
 import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 
 /**
@@ -21,8 +25,12 @@ export function createMiddlewareSupabaseClient(request: NextRequest) {
 
   const { url, anonKey } = config;
   let response = NextResponse.next({ request: { headers: request.headers } });
+  const rememberVal = request.cookies.get(CREO_REMEMBER_COOKIE)?.value;
 
   const supabase = createServerClient(url, anonKey, {
+    cookieOptions: {
+      maxAge: authCookieMaxAge(rememberVal),
+    },
     cookies: {
       getAll() {
         return request.cookies.getAll();

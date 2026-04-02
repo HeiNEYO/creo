@@ -1,15 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/dashboard/page-header";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const RevenueChart = dynamic(
   () =>
     import("@/components/dashboard/revenue-chart").then((m) => m.RevenueChart),
-  { ssr: false, loading: () => <div className="h-64 animate-pulse rounded-lg bg-creo-gray-100" /> }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-64 animate-pulse rounded-lg bg-creo-gray-100 dark:bg-muted/40" />
+    ),
+  }
 );
 
 export default function AnalyticsPage() {
@@ -23,7 +30,7 @@ export default function AnalyticsPage() {
         title="Analytics"
         description="Métriques façon Vercel — données de démo"
         action={
-          <select className="rounded-creo-md border border-creo-gray-300 bg-white px-3 py-2 text-creo-sm">
+          <select className="rounded-creo-md border border-creo-gray-300 bg-creo-white px-3 py-2 text-creo-sm text-creo-black dark:border-input dark:bg-background dark:text-foreground">
             <option>7 derniers jours</option>
             <option>30 derniers jours</option>
             <option>90 derniers jours</option>
@@ -47,7 +54,7 @@ export default function AnalyticsPage() {
             className={`rounded-full px-4 py-1.5 text-creo-sm font-medium ${
               tab === key
                 ? "bg-creo-purple-pale text-creo-purple"
-                : "text-creo-gray-500 hover:bg-creo-gray-100"
+                : "text-creo-gray-500 hover:bg-creo-gray-100 dark:hover:bg-muted/50"
             }`}
           >
             {label}
@@ -79,7 +86,7 @@ export default function AnalyticsPage() {
           </div>
           <Card className="overflow-hidden p-0">
             <table className="w-full text-creo-sm">
-              <thead className="bg-creo-gray-50 text-creo-xs uppercase tracking-wide text-creo-gray-500">
+              <thead className="bg-creo-gray-50 text-creo-xs uppercase tracking-wide text-creo-gray-500 dark:bg-muted/40">
                 <tr>
                   <th className="px-4 py-3 text-left">Source</th>
                   <th className="px-4 py-3 text-left">Visites</th>
@@ -88,13 +95,13 @@ export default function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-t border-creo-gray-100">
+                <tr className="border-t border-creo-gray-100 dark:border-border">
                   <td className="px-4 py-3">Meta Ads</td>
                   <td className="px-4 py-3">4 200</td>
                   <td className="px-4 py-3">312</td>
                   <td className="px-4 py-3">5 900 €</td>
                 </tr>
-                <tr className="border-t border-creo-gray-100">
+                <tr className="border-t border-creo-gray-100 dark:border-border">
                   <td className="px-4 py-3">Organique</td>
                   <td className="px-4 py-3">2 100</td>
                   <td className="px-4 py-3">89</td>
@@ -106,10 +113,51 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {tab !== "global" && (
-        <Card className="p-8 text-center text-creo-sm text-creo-gray-500">
-          Onglet « {tab} » — tableaux et détails à brancher sur les données
-          réelles.
+      {tab === "pages" && (
+        <Card className="p-6">
+          <CardTitle className="text-creo-md">Pages</CardTitle>
+          <p className="mt-2 text-creo-sm text-creo-gray-600 dark:text-muted-foreground">
+            Les stats par page (vues, conversion) seront branchées ici. Gère tes
+            pages et le builder depuis l’espace dédié.
+          </p>
+          <Link
+            href="/dashboard/pages"
+            className={buttonVariants({ className: "mt-6 inline-flex" })}
+          >
+            Ouvrir Pages
+          </Link>
+        </Card>
+      )}
+
+      {tab === "courses" && (
+        <Card className="p-6">
+          <CardTitle className="text-creo-md">Formations</CardTitle>
+          <p className="mt-2 text-creo-sm text-creo-gray-600 dark:text-muted-foreground">
+            Inscriptions, complétion et revenus par formation arriveront ici.
+            Pour créer ou modifier une formation, utilise le module Formations.
+          </p>
+          <Link
+            href="/dashboard/courses"
+            className={buttonVariants({ className: "mt-6 inline-flex" })}
+          >
+            Ouvrir Formations
+          </Link>
+        </Card>
+      )}
+
+      {tab === "emails" && (
+        <Card className="p-6">
+          <CardTitle className="text-creo-md">Emails</CardTitle>
+          <p className="mt-2 text-creo-sm text-creo-gray-600 dark:text-muted-foreground">
+            Taux d’ouverture, clics et campagnes seront reliés à Resend / ton
+            ESP. En attendant, prépare tes séquences depuis Emails.
+          </p>
+          <Link
+            href="/dashboard/emails"
+            className={buttonVariants({ className: "mt-6 inline-flex" })}
+          >
+            Ouvrir Emails
+          </Link>
         </Card>
       )}
     </>

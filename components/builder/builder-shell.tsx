@@ -10,11 +10,12 @@ import {
   Smartphone,
   Tablet,
 } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { updatePageServer } from "@/lib/pages/actions";
 import { cn } from "@/lib/utils";
 
 const blockGroups = [
@@ -32,9 +33,102 @@ const blockGroups = [
 
 type Device = "desktop" | "tablet" | "mobile";
 
-export function BuilderShell({ pageId }: { pageId: string }) {
+function parseContent(raw: unknown): Record<string, unknown> {
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    try {
+      return JSON.parse(JSON.stringify(raw)) as Record<string, unknown>;
+    } catch {
+      return { id: "", blocks: [] };
+    }
+  }
+  return { id: "", blocks: [] };
+}
+
+const typeLabels: Record<string, string> = {
+  landing: "Landing",
+  sales: "Vente",
+  optin: "Opt-in",
+  thankyou: "Merci",
+  checkout: "Checkout",
+  custom: "Libre",
+};
+
+export type BuilderShellProps = {
+  pageId: string;
+  initialTitle: string;
+  initialPublished: boolean;
+  initialType: string;
+  initialContent: unknown;
+};
+
+export function BuilderShell({
+  pageId,
+  initialTitle,
+  initialPublished,
+  initialType,
+  initialContent,
+}: BuilderShellProps) {
   const [device, setDevice] = useState<Device>("desktop");
-  const [title, setTitle] = useState(`Page ${pageId}`);
+  const [title, setTitle] = useState(initialTitle);
+  const [published, setPublished] = useState(initialPublished);
+  const [content, setContent] = useState(() => parseContent(initialContent));
+  const [publishPending, setPublishPending] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  const blockCount = (() => {
+    const b = content.blocks;
+    return Array.isArray(b) ? b.length : 0;
+  })();
+
+  const handleSave = useCallback(async () => {
+    setSaveStatus("saving");
+    setSaveMessage(null);
+    const res = await updatePageServer({
+      pageId,
+      title,
+      content,
+      published,
+    });
+    if (res.ok) {
+      setSaveStatus("saved");
+      window.setTimeout(() => setSaveStatus("idle"), 2000);
+    } else {
+      setSaveStatus("error");
+      setSaveMessage(res.error);
+    }
+  }, [pageId, title, content, published]);
+
+  const handlePublish = useCallback(async () => {
+    setPublishPending(true);
+    setSaveMessage(null);
+    const res = await updatePageServer({
+      pageId,
+      title,
+      content,
+      published: true,
+    });
+    setPublishPending(false);
+    if (res.ok) {
+      setPublished(true);
+    } else {
+      setSaveMessage(res.error);
+    }
+  }, [pageId, title, content]);
+
+  const addTextBlock = useCallback(() => {
+    setContent((c) => {
+      const blocks = Array.isArray(c.blocks) ? [...c.blocks] : [];
+      blocks.push({
+        id: `blk-${globalThis.crypto?.randomUUID?.() ?? Date.now()}`,
+        type: "paragraph",
+        text: "Nouveau texte",
+      });
+      return { ...c, blocks };
+    });
+  }, []);
 
   const canvasWidth =
     device === "desktop" ? "max-w-5xl" : device === "tablet" ? "max-w-2xl" : "max-w-sm";
@@ -54,8 +148,14 @@ export function BuilderShell({ pageId }: { pageId: string }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="h-8 max-w-[200px] border-transparent px-2 text-creo-md font-semibold shadow-none focus-visible:ring-1 md:max-w-xs"
+          aria-label="Titre de la page"
         />
-        <Badge variant="gray">Brouillon</Badge>
+        <Badge variant={published ? "green" : "gray"}>
+          {published ? "Publié" : "Brouillon"}
+        </Badge>
+        <span className="hidden text-creo-xs text-creo-gray-400 md:inline">
+          {typeLabels[initialType] ?? initialType}
+        </span>
         <div className="ml-auto flex items-center gap-1">
           {(
             [
@@ -84,15 +184,40 @@ export function BuilderShell({ pageId }: { pageId: string }) {
           <Eye className="size-4" />
           Aperçu
         </Button>
-        <Button variant="ghost" size="sm" type="button" className="hidden sm:flex">
+        <Button
+          variant="ghost"
+          size="sm"
+          type="button"
+          className="hidden sm:flex gap-1"
+          disabled={saveStatus === "saving"}
+          onClick={() => void handleSave()}
+        >
           <Save className="size-4" />
-          Sauvegardé
+          {saveStatus === "saving"
+            ? "Enregistrement…"
+            : saveStatus === "saved"
+              ? "Enregistré"
+              : saveStatus === "error"
+                ? "Réessayer"
+                : "Sauvegarder"}
         </Button>
-        <Button size="sm" type="button" className="gap-1">
+        <Button
+          size="sm"
+          type="button"
+          className="gap-1"
+          disabled={publishPending || published}
+          onClick={() => void handlePublish()}
+        >
           <Globe className="size-4" />
-          Publier
+          {published ? "Publié" : publishPending ? "…" : "Publier"}
         </Button>
       </header>
+
+      {saveMessage ? (
+        <div className="border-b border-red-100 bg-red-50 px-4 py-2 text-creo-sm text-red-700">
+          {saveMessage}
+        </div>
+      ) : null}
 
       <div className="flex min-h-[calc(100vh-52px)] flex-1">
         <aside className="hidden w-[280px] shrink-0 flex-col border-r border-creo-gray-200 bg-creo-white lg:flex">
@@ -104,7 +229,7 @@ export function BuilderShell({ pageId }: { pageId: string }) {
                   type="button"
                   className={cn(
                     "flex-1 rounded-md py-1.5",
-                    i === 0 ? "bg-white shadow-sm" : "text-creo-gray-500"
+                    i === 0 ? "bg-creo-white shadow-sm" : "text-creo-gray-500"
                   )}
                 >
                   {t}
@@ -140,8 +265,21 @@ export function BuilderShell({ pageId }: { pageId: string }) {
               canvasWidth
             )}
           >
-            <div className="flex min-h-[400px] flex-col items-center justify-center border-2 border-dashed border-creo-gray-200 m-4 rounded-creo-md text-creo-sm text-creo-gray-500">
-              Canvas — glisse des blocs ici
+            <div className="m-4 flex min-h-[400px] flex-col items-center justify-center rounded-creo-md border-2 border-dashed border-creo-gray-200 text-creo-sm text-creo-gray-500">
+              <p>Canvas — glisse des blocs ici</p>
+              <p className="mt-2 text-creo-xs text-creo-gray-400">
+                {blockCount} bloc{blockCount !== 1 ? "s" : ""} enregistré(s) dans le
+                contenu
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={addTextBlock}
+              >
+                + Bloc texte (démo)
+              </Button>
             </div>
           </div>
         </div>

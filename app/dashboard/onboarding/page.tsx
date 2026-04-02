@@ -91,19 +91,27 @@ export default function OnboardingPage() {
         <Card className="space-y-6 p-6">
           <h1 className="text-creo-xl font-semibold">Ton premier produit</h1>
           <div className="space-y-3">
-            <button
-              type="button"
-              className="w-full rounded-creo-lg border border-creo-gray-200 p-4 text-left hover:border-creo-purple/40"
+            <Link
+              href="/dashboard/courses/new"
+              className="block w-full rounded-creo-lg border border-creo-gray-200 p-4 text-left transition-colors hover:border-creo-purple/40 hover:bg-creo-purple-pale/20"
             >
-              <p className="font-medium">Créer ma première formation</p>
-              <Input className="mt-2" placeholder="Titre de la formation" />
-            </button>
-            <button
-              type="button"
-              className="w-full rounded-creo-lg border border-creo-gray-200 p-4 text-left hover:border-creo-purple/40"
+              <p className="font-medium text-creo-black">Créer ma première formation</p>
+              <p className="mt-1 text-creo-sm text-creo-gray-500">
+                Ouvre le formulaire dans Formations pour créer un brouillon et
+                l’éditer.
+              </p>
+            </Link>
+            <Link
+              href="/dashboard/pages"
+              className="block w-full rounded-creo-lg border border-creo-gray-200 p-4 text-left transition-colors hover:border-creo-purple/40 hover:bg-creo-purple-pale/20"
             >
-              <p className="font-medium">Créer ma première page de vente</p>
-            </button>
+              <p className="font-medium text-creo-black">
+                Créer ma première page de vente
+              </p>
+              <p className="mt-1 text-creo-sm text-creo-gray-500">
+                Va dans Pages puis « Nouvelle page » pour ouvrir le builder.
+              </p>
+            </Link>
             <button
               type="button"
               onClick={() => setStep(2)}

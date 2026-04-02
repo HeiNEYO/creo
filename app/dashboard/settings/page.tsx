@@ -1,13 +1,21 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
 import { PageHeader } from "@/components/dashboard/page-header";
+import { WorkspaceGeneralForm } from "@/components/dashboard/settings/workspace-general-form";
+import { ThemeAppearanceSettings } from "@/components/settings/theme-appearance-settings";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
 
 export const dynamic = "force-dynamic";
 
 const sections = [
   { id: "general", label: "Général" },
+  { id: "appearance", label: "Apparence" },
   { id: "account", label: "Mon compte" },
   { id: "billing", label: "Facturation" },
   { id: "domain", label: "Domaine" },
@@ -15,15 +23,35 @@ const sections = [
   { id: "danger", label: "Zone de danger" },
 ];
 
-export default function SettingsPage({
+const planLabels: Record<string, string> = {
+  starter: "Starter",
+  creator: "Creator",
+  pro: "Pro",
+  agency: "Agency",
+};
+
+export default async function SettingsPage({
   searchParams,
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
+  const { supabase, user, workspaceId } = await getWorkspaceContext();
+  if (!user) {
+    redirect("/login");
+  }
+
   const section =
     typeof searchParams.section === "string"
       ? searchParams.section
       : "general";
+
+  const { data: workspace } = workspaceId
+    ? await supabase
+        .from("workspaces")
+        .select("name, slug, plan")
+        .eq("id", workspaceId)
+        .maybeSingle()
+    : { data: null };
 
   return (
     <>
@@ -51,19 +79,32 @@ export default function SettingsPage({
           {section === "general" && (
             <Card className="space-y-4 p-6">
               <h2 className="text-creo-md font-semibold">Général</h2>
-              <div className="space-y-2">
-                <Label>Nom du workspace</Label>
-                <Input defaultValue="Mon workspace" />
-              </div>
-              <div className="space-y-2">
-                <Label>Slug (URL)</Label>
-                <Input defaultValue="mon-workspace" />
-              </div>
-              <div className="space-y-2">
-                <Label>Devise</Label>
-                <Input defaultValue="EUR" />
-              </div>
-              <Button type="button">Enregistrer</Button>
+              {!workspaceId || !workspace ? (
+                <p className="text-creo-sm text-creo-gray-500">
+                  Workspace introuvable.{" "}
+                  <Link href="/login" className="text-creo-purple underline">
+                    Reconnecte-toi
+                  </Link>
+                  .
+                </p>
+              ) : (
+                <>
+                  <WorkspaceGeneralForm
+                    initialName={workspace.name}
+                    initialSlug={workspace.slug}
+                  />
+                  <p className="border-t border-creo-gray-100 pt-4 text-creo-xs text-creo-gray-500 dark:border-border">
+                    Devise boutique / Stripe : prochaine étape (pas encore stockée
+                    sur le workspace).
+                  </p>
+                </>
+              )}
+            </Card>
+          )}
+          {section === "appearance" && (
+            <Card className="space-y-4 p-6">
+              <h2 className="text-creo-md font-semibold">Apparence</h2>
+              <ThemeAppearanceSettings />
             </Card>
           )}
           {section === "account" && (
@@ -71,19 +112,32 @@ export default function SettingsPage({
               <h2 className="text-creo-md font-semibold">Mon compte</h2>
               <div className="space-y-2">
                 <Label>Email</Label>
-                <Input type="email" />
+                <Input
+                  type="email"
+                  readOnly
+                  defaultValue={user.email ?? ""}
+                  className="bg-creo-gray-50 dark:bg-muted/40"
+                />
               </div>
-              <Button type="button" variant="outline">
+              <Link
+                href="/forgot-password"
+                className={buttonVariants({ variant: "outline" })}
+              >
                 Changer le mot de passe
-              </Button>
+              </Link>
             </Card>
           )}
           {section === "billing" && (
             <Card className="space-y-4 p-6">
               <h2 className="text-creo-md font-semibold">Facturation</h2>
               <p className="text-creo-sm text-creo-gray-500">
-                Plan actuel : <strong>Starter</strong> — intégration Stripe à
-                venir.
+                Plan actuel :{" "}
+                <strong>
+                  {workspace?.plan
+                    ? (planLabels[workspace.plan] ?? workspace.plan)
+                    : "—"}
+                </strong>{" "}
+                — intégration Stripe à venir.
               </p>
             </Card>
           )}

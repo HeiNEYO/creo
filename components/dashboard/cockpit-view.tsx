@@ -186,7 +186,7 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
                 <button
                   key={s}
                   type="button"
-                  className="rounded-full border border-creo-purple/20 bg-white px-3 py-1.5 text-left text-creo-sm text-creo-purple transition-colors hover:border-creo-purple/40"
+                  className="rounded-full border border-creo-purple/20 bg-creo-white px-3 py-1.5 text-left text-creo-sm text-creo-purple transition-colors hover:border-creo-purple/40"
                 >
                   {s}
                 </button>

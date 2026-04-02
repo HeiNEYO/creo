@@ -107,7 +107,7 @@ export function HomeLanding() {
               ["Données éparpillées", "Analytics Meta ≠ revenus réels."],
               ["Élèves qui n’avancent pas", "Pas de suivi de complétion clair."],
             ].map(([t, d]) => (
-              <div key={t} className="rounded-creo-lg border border-creo-gray-200 bg-white p-6">
+              <div key={t} className="rounded-creo-lg border border-creo-gray-200 bg-creo-white p-6">
                 <p className="text-lg text-creo-danger">✕</p>
                 <h3 className="mt-2 text-creo-md font-semibold">{t}</h3>
                 <p className="mt-2 text-creo-sm text-creo-gray-500">{d}</p>
@@ -142,7 +142,7 @@ export function HomeLanding() {
               <div
                 key={name}
                 className={cn(
-                  "rounded-creo-xl border bg-white p-6",
+                  "rounded-creo-xl border border-creo-gray-200 bg-creo-white p-6",
                   i === 1
                     ? "border-creo-purple shadow-creo"
                     : "border-creo-gray-200"

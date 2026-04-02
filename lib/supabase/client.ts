@@ -1,5 +1,9 @@
 import { createBrowserClient } from "@supabase/ssr";
 
+import {
+  authCookieMaxAge,
+  readRememberCookieValueFromDocument,
+} from "@/lib/supabase/auth-session-preference";
 import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 
 function getSupabaseBrowserConfig(): { url: string; anonKey: string } {
@@ -15,5 +19,11 @@ function getSupabaseBrowserConfig(): { url: string; anonKey: string } {
 /** Client Supabase pour le navigateur (composants client, hooks). */
 export function createClient() {
   const { url, anonKey } = getSupabaseBrowserConfig();
-  return createBrowserClient(url, anonKey);
+  const remember = readRememberCookieValueFromDocument();
+  return createBrowserClient(url, anonKey, {
+    isSingleton: false,
+    cookieOptions: {
+      maxAge: authCookieMaxAge(remember),
+    },
+  });
 }

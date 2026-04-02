@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { signUpSchema } from "@/lib/auth/validation";
+import { setRememberPreferenceCookie } from "@/lib/supabase/auth-session-preference";
 import { createClient } from "@/lib/supabase/client";
 import { ensureDefaultWorkspaceFromBrowser } from "@/lib/workspaces/ensure-default-browser";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,10 @@ export function RegisterForm() {
       setPending(false);
       return;
     }
+
+    const remember =
+      formData.get("remember") === "on" || formData.get("remember") === "true";
+    setRememberPreferenceCookie(remember);
 
     const supabase = createClient();
     const signUpResult = await supabase.auth.signUp({
@@ -140,6 +145,15 @@ export function RegisterForm() {
         />
         <p className="text-xs text-muted-foreground">Au moins 8 caractères.</p>
       </div>
+      <label className="flex cursor-pointer items-center gap-2 text-creo-sm text-creo-gray-700 dark:text-muted-foreground">
+        <input
+          type="checkbox"
+          name="remember"
+          defaultChecked
+          className="size-4 rounded border-creo-gray-300 text-creo-purple focus:ring-creo-purple"
+        />
+        Se souvenir de moi sur cet appareil
+      </label>
       <Button type="submit" className="w-full" size="lg" disabled={pending}>
         {pending ? "Création…" : "Créer mon compte"}
       </Button>

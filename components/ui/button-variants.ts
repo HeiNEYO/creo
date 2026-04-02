@@ -11,7 +11,7 @@ export const buttonVariants = cva(
         outline:
           "border-creo-gray-300 bg-creo-white text-creo-black hover:border-creo-gray-400 hover:bg-creo-gray-50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
-          "border-creo-gray-300 bg-creo-white text-creo-black hover:bg-creo-gray-50 hover:border-creo-gray-400",
+          "border-creo-gray-300 bg-creo-white text-creo-black hover:bg-creo-gray-50 hover:border-creo-gray-400 dark:border-input dark:bg-secondary dark:text-secondary-foreground dark:hover:bg-secondary/80",
         ghost:
           "text-creo-gray-700 hover:bg-creo-gray-100 border-transparent dark:text-foreground dark:hover:bg-muted/50",
         danger:

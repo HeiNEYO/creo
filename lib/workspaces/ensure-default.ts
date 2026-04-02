@@ -13,3 +13,11 @@ export async function ensureDefaultWorkspace(
     throw new Error(error.message);
   }
 }
+
+/** Même RPC, sans exception — pour le contexte RSC / middleware. */
+export async function ensureDefaultWorkspaceSafe(
+  supabase: SupabaseClient
+): Promise<boolean> {
+  const { error } = await supabase.rpc("ensure_default_workspace");
+  return !error;
+}

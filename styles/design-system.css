@@ -118,24 +118,60 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
+/**
+ * Mode sombre : tokens CRÉO inversés + variables shadcn (classe .dark sur <html>).
+ */
 .dark {
-  --background: #0f0f0f;
-  --foreground: #fafafa;
-  --card: #18181b;
+  --creo-purple: #a78bfa;
+  --creo-purple-light: #c4b5fd;
+  --creo-purple-pale: #2e1064;
+  --creo-purple-dark: #7c3aed;
+
+  --creo-white: #0c0c0f;
+  --creo-black: #fafafa;
+  --creo-gray-50: #09090b;
+  --creo-gray-100: #18181b;
+  --creo-gray-200: #27272a;
+  --creo-gray-300: #3f3f46;
+  --creo-gray-400: #71717a;
+  --creo-gray-500: #a1a1aa;
+  --creo-gray-700: #d4d4d8;
+  --creo-gray-900: #f4f4f5;
+
+  --creo-success: #34d399;
+  --creo-success-pale: #064e3b;
+  --creo-warning: #fbbf24;
+  --creo-warning-pale: #422006;
+  --creo-danger: #f87171;
+  --creo-danger-pale: #450a0a;
+  --creo-info: #60a5fa;
+  --creo-info-pale: #1e3a5f;
+
+  --creo-shadow-elevated:
+    0 4px 6px -1px rgb(0 0 0 / 0.45), 0 2px 4px -1px rgb(0 0 0 / 0.35);
+  --creo-shadow-card-hover: 0 2px 8px rgb(0 0 0 / 0.35);
+  --creo-shadow-modal:
+    0 8px 24px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.35);
+
+  --creo-ring-purple: rgb(167 139 250 / 0.25);
+
+  --background: var(--creo-white);
+  --foreground: var(--creo-black);
+  --card: #141416;
   --card-foreground: #fafafa;
   --popover: #18181b;
   --popover-foreground: #fafafa;
-  --primary: var(--creo-purple);
+  --primary: var(--creo-purple-dark);
   --primary-foreground: #ffffff;
   --secondary: #27272a;
   --secondary-foreground: #fafafa;
   --muted: #27272a;
   --muted-foreground: #a1a1aa;
-  --accent: #2e1064;
+  --accent: var(--creo-purple-pale);
   --accent-foreground: #e9d5ff;
   --destructive: #f87171;
   --border: rgb(255 255 255 / 0.1);
-  --input: rgb(255 255 255 / 0.15);
+  --input: rgb(255 255 255 / 0.12);
   --ring: #a78bfa;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
