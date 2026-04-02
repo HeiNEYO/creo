@@ -3,27 +3,6 @@
 import { createClient } from "@/lib/supabase/server";
 import type { AuthActionState } from "@/lib/auth/form-state";
 import { forgotPasswordSchema } from "@/lib/auth/validation";
-import { ensureDefaultWorkspace } from "@/lib/workspaces/ensure-default";
-
-/** Appelé après connexion/inscription côté navigateur (cookies de session déjà posés). */
-export async function ensureDefaultWorkspaceAction(): Promise<{
-  error: string | null;
-}> {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return { error: "Session introuvable. Réessaie dans un instant." };
-  }
-  try {
-    await ensureDefaultWorkspace(supabase);
-    return { error: null };
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "Erreur workspace.";
-    return { error: message };
-  }
-}
 
 export async function forgotPasswordAction(
   _prev: AuthActionState,

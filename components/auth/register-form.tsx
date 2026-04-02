@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-import { ensureDefaultWorkspaceAction } from "@/lib/auth/actions";
 import { signUpSchema } from "@/lib/auth/validation";
 import { createClient } from "@/lib/supabase/client";
+import { ensureDefaultWorkspaceFromBrowser } from "@/lib/workspaces/ensure-default-browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,7 +37,7 @@ export function RegisterForm() {
     }
 
     const supabase = createClient();
-    const { data, error: authError } = await supabase.auth.signUp({
+    const signUpResult = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
@@ -47,20 +47,39 @@ export function RegisterForm() {
       },
     });
 
-    if (authError) {
-      setError(authError.message);
+    if (!signUpResult) {
+      setError("Inscription impossible : réponse invalide du serveur.");
+      setPending(false);
+      return;
+    }
+    if (signUpResult.error) {
+      setError(signUpResult.error.message);
       setPending(false);
       return;
     }
 
+    const { data } = signUpResult;
     if (data.session && data.user) {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
+      const { data: sessionData, error: sessionErr } =
+        await supabase.auth.getSession();
+      if (sessionErr) {
+        setError(sessionErr.message);
+        setPending(false);
+        return;
+      }
+      if (!sessionData?.session) {
         setError("Session non établie. Réessaie.");
         setPending(false);
         return;
       }
-      const workspace = await ensureDefaultWorkspaceAction();
+      let workspace: { error: string | null };
+      try {
+        workspace = await ensureDefaultWorkspaceFromBrowser(supabase);
+      } catch {
+        setError("Erreur réseau lors de la préparation du workspace. Réessaie.");
+        setPending(false);
+        return;
+      }
       if (workspace.error) {
         setError(workspace.error);
         setPending(false);

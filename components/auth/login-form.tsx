@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { ensureDefaultWorkspaceAction } from "@/lib/auth/actions";
 import { signInSchema } from "@/lib/auth/validation";
 import { createClient } from "@/lib/supabase/client";
+import { ensureDefaultWorkspaceFromBrowser } from "@/lib/workspaces/ensure-default-browser";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,23 +42,39 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     }
 
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signInWithPassword(
-      parsed.data
-    );
-    if (authError) {
-      setError(authError.message);
+    const signInResult = await supabase.auth.signInWithPassword(parsed.data);
+    if (!signInResult) {
+      setError("Connexion impossible : réponse invalide du serveur.");
+      setPending(false);
+      return;
+    }
+    if (signInResult.error) {
+      setError(signInResult.error.message);
       setPending(false);
       return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: sessionData, error: sessionErr } =
+      await supabase.auth.getSession();
+    if (sessionErr) {
+      setError(sessionErr.message);
+      setPending(false);
+      return;
+    }
+    if (!sessionData?.session) {
       setError("Session non établie. Réessaie.");
       setPending(false);
       return;
     }
 
-    const workspace = await ensureDefaultWorkspaceAction();
+    let workspace: { error: string | null };
+    try {
+      workspace = await ensureDefaultWorkspaceFromBrowser(supabase);
+    } catch {
+      setError("Erreur réseau lors de la préparation du workspace. Réessaie.");
+      setPending(false);
+      return;
+    }
     if (workspace.error) {
       setError(workspace.error);
       setPending(false);
