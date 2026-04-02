@@ -16,7 +16,7 @@ export default async function BuilderPage({ params }: PageProps) {
 
   const { data: page, error } = await supabase
     .from("pages")
-    .select("id, title, type, published, content")
+    .select("id, title, slug, type, published, content, workspace_id")
     .eq("id", params.pageId)
     .maybeSingle();
 
@@ -24,9 +24,25 @@ export default async function BuilderPage({ params }: PageProps) {
     notFound();
   }
 
+  const { data: ws } = await supabase
+    .from("workspaces")
+    .select("slug")
+    .eq("id", page.workspace_id)
+    .maybeSingle();
+
+  const base =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
+  const publicPageHref =
+    base && ws?.slug
+      ? `${base}/p/${ws.slug}/${page.slug}`
+      : null;
+
   return (
     <BuilderShell
       pageId={page.id}
+      pageSlug={page.slug}
+      workspaceSlug={ws?.slug ?? ""}
+      publicPageHref={publicPageHref}
       initialTitle={page.title}
       initialPublished={page.published}
       initialType={page.type}

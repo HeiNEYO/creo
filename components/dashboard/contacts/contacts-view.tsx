@@ -1,9 +1,13 @@
 "use client";
 
 import { Plus, Search, Upload } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
-import { createContactServer } from "@/lib/contacts/actions";
+import {
+  createContactServer,
+  importContactsCsvServer,
+  updateContactTagsServer,
+} from "@/lib/contacts/actions";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -54,8 +58,22 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [tags, setTags] = useState("");
+  const [tagEdit, setTagEdit] = useState("");
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const [tagError, setTagError] = useState<string | null>(null);
 
   const selected = contacts.find((r) => r.id === openId);
+
+  useEffect(() => {
+    if (!openId) {
+      setTagEdit("");
+      return;
+    }
+    const c = contacts.find((r) => r.id === openId);
+    setTagEdit((c?.tags ?? []).join(", "));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sync seulement à l’ouverture du panneau
+  }, [openId]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -66,6 +84,19 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
     });
   }, [contacts, query]);
 
+  async function refreshContacts() {
+    const supabase = createClient();
+    const { data } = await supabase
+      .from("contacts")
+      .select(
+        "id, email, first_name, last_name, tags, source, subscribed, created_at"
+      )
+      .order("created_at", { ascending: false });
+    if (data) {
+      setContacts(data as ContactRow[]);
+    }
+  }
+
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
@@ -74,24 +105,60 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
         email,
         firstName: firstName || undefined,
         lastName: lastName || undefined,
+        tags: tags || undefined,
       });
       if (res.ok) {
         setEmail("");
         setFirstName("");
         setLastName("");
+        setTags("");
         setAddOpen(false);
-        const supabase = createClient();
-        const { data } = await supabase
-          .from("contacts")
-          .select(
-            "id, email, first_name, last_name, tags, source, subscribed, created_at"
-          )
-          .order("created_at", { ascending: false });
-        if (data) {
-          setContacts(data as ContactRow[]);
-        }
+        await refreshContacts();
       } else {
         setFormError(res.error);
+      }
+    });
+  }
+
+  function handleCsvChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) {
+      return;
+    }
+    setImportMsg(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? "");
+      startTransition(async () => {
+        const res = await importContactsCsvServer(text);
+        if (res.ok) {
+          setImportMsg(
+            `Import terminé : ${res.imported} ajouté(s), ${res.skipped} ignoré(s).`
+          );
+          await refreshContacts();
+        } else {
+          setImportMsg(res.error);
+        }
+      });
+    };
+    reader.readAsText(file, "UTF-8");
+  }
+
+  function saveTags() {
+    if (!selected) {
+      return;
+    }
+    setTagError(null);
+    startTransition(async () => {
+      const res = await updateContactTagsServer({
+        contactId: selected.id,
+        tags: tagEdit,
+      });
+      if (res.ok) {
+        await refreshContacts();
+      } else {
+        setTagError(res.error);
       }
     });
   }
@@ -121,9 +188,22 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
       />
 
       {importNote ? (
-        <Card className="mb-4 border-dashed p-4 text-creo-sm text-[#616161] dark:text-[#a3a3a3]">
-          L’import CSV sera disponible dans une prochaine version. En attendant,
-          ajoute tes contacts un par un ou via ton CRM.
+        <Card className="mb-4 space-y-3 border-dashed p-4 text-creo-sm text-[#616161] dark:text-[#a3a3a3]">
+          <p>
+            Fichier CSV avec en-tête :{" "}
+            <code className="text-creo-xs">email</code>,{" "}
+            <code className="text-creo-xs">first_name</code>,{" "}
+            <code className="text-creo-xs">last_name</code>,{" "}
+            <code className="text-creo-xs">tags</code> (séparés par virgules).
+          </p>
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            disabled={pending}
+            onChange={handleCsvChange}
+            className="block w-full max-w-md text-creo-sm"
+          />
+          {importMsg ? <p className="text-creo-black dark:text-white">{importMsg}</p> : null}
         </Card>
       ) : null}
 
@@ -171,6 +251,16 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
                   />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="c-tags">Tags (séparés par virgules)</Label>
+                <Input
+                  id="c-tags"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  placeholder="lead, newsletter"
+                  disabled={pending}
+                />
+              </div>
               {formError ? (
                 <p className="text-sm text-red-600 dark:text-red-400" role="alert">
                   {formError}
@@ -205,7 +295,7 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
           />
         </div>
         <Button type="button" variant="ghost" size="sm" disabled>
-          Tags
+          Filtres
         </Button>
       </div>
 
@@ -339,6 +429,33 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
                     <span className="text-creo-gray-500">Inscrit le </span>
                     {formatCreated(selected.created_at)}
                   </p>
+                </div>
+              </section>
+              <section>
+                <h3 className="text-creo-xs font-medium uppercase tracking-wide text-creo-gray-500">
+                  Tags
+                </h3>
+                <div className="mt-2 space-y-2">
+                  <Input
+                    value={tagEdit}
+                    onChange={(e) => setTagEdit(e.target.value)}
+                    placeholder="tag1, tag2"
+                    disabled={pending}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    disabled={pending}
+                    onClick={() => saveTags()}
+                  >
+                    Enregistrer les tags
+                  </Button>
+                  {tagError ? (
+                    <p className="text-creo-xs text-red-600 dark:text-red-400" role="alert">
+                      {tagError}
+                    </p>
+                  ) : null}
                 </div>
               </section>
               <section>

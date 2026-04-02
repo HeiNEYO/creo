@@ -75,9 +75,21 @@ function readChartColors(): ChartColors {
 type RevenueChartProps = {
   /** `light` = couleurs type admin clair (ignore le thème global). */
   appearance?: "auto" | "light";
+  /** Si fourni et non vide, remplace les données de démo. */
+  series?: { d: string; v: number }[];
+  dataLabel?: string;
+  valueSuffix?: string;
+  /** Affiche les valeurs entières (ex. vues) au lieu du format monétaire. */
+  valueIsInteger?: boolean;
 };
 
-export function RevenueChart({ appearance = "auto" }: RevenueChartProps) {
+export function RevenueChart({
+  appearance = "auto",
+  series,
+  dataLabel = "CA",
+  valueSuffix = " €",
+  valueIsInteger = false,
+}: RevenueChartProps) {
   const [mounted, setMounted] = useState(false);
   const [colors, setColors] = useState<ChartColors>(
     appearance === "light" ? LIGHT_SURFACE : FALLBACK
@@ -97,6 +109,9 @@ export function RevenueChart({ appearance = "auto" }: RevenueChartProps) {
     return () => obs.disconnect();
   }, [appearance]);
 
+  const chartData =
+    series && series.length > 0 ? series : data;
+
   if (!mounted) {
     return (
       <div
@@ -114,7 +129,7 @@ export function RevenueChart({ appearance = "auto" }: RevenueChartProps) {
       <AreaChart
         width={CHART_W}
         height={CHART_H}
-        data={data}
+        data={chartData}
         margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
       >
         <defs>
@@ -146,7 +161,11 @@ export function RevenueChart({ appearance = "auto" }: RevenueChartProps) {
           axisLine={false}
           tickLine={false}
           tick={{ fill: colors.tick, fontSize: 11 }}
-          tickFormatter={(v) => `${v >= 1000 ? `${v / 1000}k` : v}`}
+          tickFormatter={(v) =>
+            valueIsInteger
+              ? `${v >= 1000 ? `${Math.round(v / 1000)}k` : v}`
+              : `${v >= 1000 ? `${v / 1000}k` : v}`
+          }
         />
         <Tooltip
           contentStyle={{
@@ -158,8 +177,8 @@ export function RevenueChart({ appearance = "auto" }: RevenueChartProps) {
           }}
           labelStyle={{ color: colors.tooltipFg }}
           formatter={(value) => [
-            `${Number(value ?? 0).toLocaleString("fr-FR")} €`,
-            "CA",
+            `${Number(value ?? 0).toLocaleString("fr-FR")}${valueSuffix}`,
+            dataLabel,
           ]}
         />
         <Area

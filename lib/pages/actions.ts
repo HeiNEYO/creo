@@ -106,3 +106,22 @@ export async function updatePageServer(input: {
   revalidatePath(`/builder/${input.pageId}`);
   return { ok: true };
 }
+
+export async function deletePageServer(input: {
+  pageId: string;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = createClient();
+  const user = await readAuthUser(supabase);
+  if (!user) {
+    return { ok: false, error: "Non connecté." };
+  }
+
+  const { error } = await supabase.from("pages").delete().eq("id", input.pageId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/dashboard/pages");
+  return { ok: true };
+}

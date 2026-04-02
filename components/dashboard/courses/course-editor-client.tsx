@@ -109,9 +109,11 @@ function ModuleTitleField({
 function LessonEditorPanel({
   courseId,
   lesson,
+  onRequestDelete,
 }: {
   courseId: string;
   lesson: CourseLessonDTO;
+  onRequestDelete?: () => void;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -233,9 +235,23 @@ function LessonEditorPanel({
           Aperçu gratuit
         </label>
       </div>
-      <Button type="button" onClick={save} disabled={pending}>
-        {pending ? "Enregistrement…" : "Enregistrer la leçon"}
-      </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button type="button" onClick={save} disabled={pending}>
+          {pending ? "Enregistrement…" : "Enregistrer la leçon"}
+        </Button>
+        {onRequestDelete ? (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            disabled={pending}
+            onClick={onRequestDelete}
+          >
+            <Trash2 className="size-3.5" />
+            Supprimer la leçon
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -430,12 +446,22 @@ export function CourseEditorClient({
         moduleId,
         courseId: course.id,
       });
-      if (res.ok) router.refresh();
+      if (res.ok) {
+        router.refresh();
+      } else {
+        window.alert(res.error);
+      }
     });
   };
 
   const removeLesson = (lessonId: string) => {
-    if (!window.confirm("Supprimer cette leçon ?")) return;
+    if (
+      !window.confirm(
+        "Supprimer cette leçon ? Cette action est définitive."
+      )
+    ) {
+      return;
+    }
     startStructTransition(async () => {
       const res = await deleteCourseLessonServer({
         lessonId,
@@ -444,6 +470,8 @@ export function CourseEditorClient({
       if (res.ok) {
         if (selectedLessonId === lessonId) setSelectedLessonId(null);
         router.refresh();
+      } else {
+        window.alert(res.error);
       }
     });
   };
@@ -587,7 +615,7 @@ export function CourseEditorClient({
               type="button"
               onClick={() => setTab(key)}
               className={cn(
-                "rounded-full px-3 py-1 text-creo-sm font-medium transition-colors",
+                "rounded-none px-3 py-1 text-creo-sm font-medium transition-colors",
                 tab === key
                   ? "bg-creo-purple-pale text-creo-purple"
                   : "text-creo-gray-500 hover:bg-creo-gray-100 dark:hover:bg-muted/50"
@@ -608,7 +636,11 @@ export function CourseEditorClient({
               </Card>
             ) : (
               <Card className="p-6">
-                <LessonEditorPanel courseId={course.id} lesson={selectedLesson} />
+                <LessonEditorPanel
+                  courseId={course.id}
+                  lesson={selectedLesson}
+                  onRequestDelete={() => removeLesson(selectedLesson.id)}
+                />
               </Card>
             )}
           </>

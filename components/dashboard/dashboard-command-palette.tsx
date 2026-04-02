@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Loader2, Search } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import {
   dashboardNavItems,
   learnNavItem,
+  resolveDashboardIcon,
 } from "@/components/dashboard/nav-config";
+import { CreoIconSearch } from "@/components/icons/creo-nav-icons";
 import { cn } from "@/lib/utils";
 
 type PaletteItem = {
@@ -155,7 +157,7 @@ export function DashboardCommandPalette({
       />
       <div className="relative w-full max-w-lg overflow-hidden rounded-xl border border-[#e3e5e8] bg-white shadow-xl dark:border-[#2a2a2a] dark:bg-[#141414]">
         <div className="flex items-center gap-2 border-b border-[#e3e5e8] px-3 dark:border-[#2a2a2a]">
-          <Search className="size-4 shrink-0 text-[#616161] dark:text-[#a3a3a3]" />
+          <CreoIconSearch className="size-4 text-[#616161] dark:text-[#a3a3a3]" />
           <input
             ref={inputRef}
             type="search"
@@ -183,7 +185,9 @@ export function DashboardCommandPalette({
                 : "Aucun résultat."}
             </li>
           ) : (
-            filtered.map((item) => (
+            filtered.map((item) => {
+              const ItemIcon = resolveDashboardIcon(item.href);
+              return (
               <li key={item.id}>
                 <button
                   type="button"
@@ -193,14 +197,15 @@ export function DashboardCommandPalette({
                     "text-[#202223] hover:bg-[#f6f6f7] dark:text-white dark:hover:bg-[#1f1f1f]"
                   )}
                 >
-                  <FileText className="size-4 shrink-0 text-[#616161] dark:text-[#a3a3a3]" />
+                  <ItemIcon className="text-[#616161] dark:text-[#a3a3a3]" />
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
                   <span className="shrink-0 text-[11px] text-[#8c9196] dark:text-[#737373]">
                     {item.group}
                   </span>
                 </button>
               </li>
-            ))
+            );
+            })
           )}
         </ul>
         <p className="border-t border-[#e3e5e8] px-3 py-2 text-[11px] text-[#8c9196] dark:border-[#2a2a2a] dark:text-[#737373]">

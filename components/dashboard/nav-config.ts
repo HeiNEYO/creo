@@ -1,38 +1,64 @@
-import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
+
 import {
-  BarChart3,
-  BookOpen,
-  GraduationCap,
-  LayoutDashboard,
-  Mail,
-  Puzzle,
-  Rocket,
-  Settings,
-  Users,
-  FileStack,
-} from "lucide-react";
+  NavIconAnalytics,
+  NavIconCockpit,
+  NavIconContacts,
+  NavIconCourses,
+  NavIconDocument,
+  NavIconEmails,
+  NavIconIntegrations,
+  NavIconLearn,
+  NavIconQuestionnaire,
+  NavIconPages,
+  NavIconProfile,
+  NavIconSettings,
+} from "@/components/icons/creo-nav-icons";
+
+export type NavIconComponent = ComponentType<{ className?: string }>;
 
 export type DashboardNavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: NavIconComponent;
 };
 
 export const dashboardNavItems: DashboardNavItem[] = [
-  { href: "/dashboard", label: "Cockpit", icon: LayoutDashboard },
-  { href: "/dashboard/onboarding", label: "Onboarding", icon: Rocket },
-  { href: "/dashboard/pages", label: "Pages", icon: FileStack },
-  { href: "/dashboard/courses", label: "Formations", icon: GraduationCap },
-  { href: "/dashboard/contacts", label: "Contacts", icon: Users },
-  { href: "/dashboard/emails", label: "Emails", icon: Mail },
-  { href: "/dashboard/integrations", label: "Intégrations", icon: Puzzle },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/dashboard/settings", label: "Paramètres", icon: Settings },
+  { href: "/dashboard", label: "Cockpit", icon: NavIconCockpit },
+  { href: "/dashboard/questionnaire", label: "Questionnaire", icon: NavIconQuestionnaire },
+  { href: "/dashboard/pages", label: "Pages", icon: NavIconPages },
+  { href: "/dashboard/courses", label: "Formations", icon: NavIconCourses },
+  { href: "/dashboard/contacts", label: "Contacts", icon: NavIconContacts },
+  { href: "/dashboard/emails", label: "Emails", icon: NavIconEmails },
+  { href: "/dashboard/integrations", label: "Intégrations", icon: NavIconIntegrations },
+  { href: "/dashboard/analytics", label: "Analytics", icon: NavIconAnalytics },
+  { href: "/dashboard/profile", label: "Mon profil", icon: NavIconProfile },
+  { href: "/dashboard/settings", label: "Paramètres", icon: NavIconSettings },
 ];
 
 /** Espace élève (aperçu) */
 export const learnNavItem: DashboardNavItem = {
   href: "/learn/demo",
   label: "Espace membre (démo)",
-  icon: BookOpen,
+  icon: NavIconLearn,
 };
+
+const allNav = [...dashboardNavItems, learnNavItem];
+
+/** Icône pour la palette ⌘K et tout lien dashboard. */
+export function resolveDashboardIcon(href: string): NavIconComponent {
+  const exact = allNav.find((i) => i.href === href);
+  if (exact) {
+    return exact.icon;
+  }
+  if (href.startsWith("/builder/")) {
+    return NavIconDocument;
+  }
+  const prefix = allNav.find(
+    (i) => i.href !== "/dashboard" && href.startsWith(`${i.href}/`)
+  );
+  if (prefix) {
+    return prefix.icon;
+  }
+  return NavIconDocument;
+}

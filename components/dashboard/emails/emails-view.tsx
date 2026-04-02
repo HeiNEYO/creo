@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -61,7 +62,7 @@ export function EmailsView({ campaigns, sequences }: EmailsViewProps) {
         const res = await createEmailCampaignServer({ name });
         if (res.ok) {
           setDialogOpen(false);
-          router.refresh();
+          router.push(`/dashboard/emails/campaigns/${res.id}`);
         } else {
           setError(res.error);
         }
@@ -141,11 +142,11 @@ export function EmailsView({ campaigns, sequences }: EmailsViewProps) {
         </div>
       ) : null}
 
-      <div className="mb-6 flex w-fit gap-1 rounded-creo-md border border-creo-gray-200 p-1 dark:border-[#2a2a2a]">
+      <div className="mb-6 flex w-fit gap-0 border border-creo-gray-200 dark:border-[#2a2a2a]">
         <button
           type="button"
           onClick={() => setTab("campaigns")}
-          className={`rounded-md px-4 py-2 text-creo-sm font-medium ${
+          className={`rounded-none px-4 py-2 text-creo-sm font-medium ${
             tab === "campaigns"
               ? "bg-creo-purple-pale text-creo-purple dark:bg-[#1f1f3a] dark:text-[#6688ff]"
               : "text-creo-gray-500 dark:text-[#a3a3a3]"
@@ -156,7 +157,7 @@ export function EmailsView({ campaigns, sequences }: EmailsViewProps) {
         <button
           type="button"
           onClick={() => setTab("sequences")}
-          className={`rounded-md px-4 py-2 text-creo-sm font-medium ${
+          className={`rounded-none border-l border-creo-gray-200 px-4 py-2 text-creo-sm font-medium dark:border-[#2a2a2a] ${
             tab === "sequences"
               ? "bg-creo-purple-pale text-creo-purple dark:bg-[#1f1f3a] dark:text-[#6688ff]"
               : "text-creo-gray-500 dark:text-[#a3a3a3]"
@@ -188,7 +189,12 @@ export function EmailsView({ campaigns, sequences }: EmailsViewProps) {
                     className="border-b border-creo-gray-100 dark:border-[#2a2a2a]"
                   >
                     <td className="px-4 py-3 font-medium dark:text-white">
-                      {c.name}
+                      <Link
+                        href={`/dashboard/emails/campaigns/${c.id}`}
+                        className="hover:underline"
+                      >
+                        {c.name}
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       <Badge

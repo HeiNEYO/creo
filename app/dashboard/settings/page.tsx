@@ -59,16 +59,19 @@ export default async function SettingsPage({
         title="Paramètres"
         description="Workspace, facturation, domaine, équipe"
       />
-      <div className="flex flex-col gap-8 lg:flex-row">
-        <nav className="flex shrink-0 flex-row gap-2 overflow-x-auto lg:w-48 lg:flex-col lg:gap-1">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
+        <nav
+          className="sticky top-0 z-10 flex shrink-0 flex-row gap-2 overflow-x-auto bg-white pb-1 pt-0.5 dark:bg-[#141414] lg:w-48 lg:flex-col lg:gap-1 lg:self-start lg:overflow-x-visible lg:pb-0 lg:pt-0"
+          aria-label="Sections des paramètres"
+        >
           {sections.map((s) => (
             <a
               key={s.id}
               href={`/dashboard/settings?section=${s.id}`}
-              className={`whitespace-nowrap rounded-creo-md px-3 py-2 text-creo-sm font-medium lg:w-full ${
+              className={`whitespace-nowrap rounded-none px-3 py-2 text-creo-sm font-medium lg:w-full ${
                 section === s.id
                   ? "bg-creo-purple-pale text-creo-purple"
-                  : "text-creo-gray-600 hover:bg-creo-gray-100"
+                  : "text-creo-gray-600 hover:bg-creo-gray-100 dark:hover:bg-white/[0.06]"
               }`}
             >
               {s.label}
@@ -110,6 +113,13 @@ export default async function SettingsPage({
           {section === "account" && (
             <Card className="space-y-4 p-6">
               <h2 className="text-creo-md font-semibold">Mon compte</h2>
+              <p className="text-creo-sm text-creo-gray-500">
+                Photo et nom :{" "}
+                <Link href="/dashboard/profile" className="text-creo-purple underline">
+                  Mon profil
+                </Link>
+                .
+              </p>
               <div className="space-y-2">
                 <Label>Email</Label>
                 <Input

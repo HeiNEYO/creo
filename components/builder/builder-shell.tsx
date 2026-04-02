@@ -55,6 +55,10 @@ const typeLabels: Record<string, string> = {
 
 export type BuilderShellProps = {
   pageId: string;
+  pageSlug: string;
+  workspaceSlug: string;
+  /** Lien absolu vers la page publique si NEXT_PUBLIC_APP_URL est défini. */
+  publicPageHref: string | null;
   initialTitle: string;
   initialPublished: boolean;
   initialType: string;
@@ -63,6 +67,9 @@ export type BuilderShellProps = {
 
 export function BuilderShell({
   pageId,
+  pageSlug,
+  workspaceSlug,
+  publicPageHref,
   initialTitle,
   initialPublished,
   initialType,
@@ -180,10 +187,29 @@ export function BuilderShell({
             </button>
           ))}
         </div>
-        <Button variant="ghost" size="sm" type="button" className="hidden sm:flex">
-          <Eye className="size-4" />
-          Aperçu
-        </Button>
+        {publicPageHref && published ? (
+          <a
+            href={publicPageHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonVariants({
+              variant: "ghost",
+              size: "sm",
+              className: "hidden sm:inline-flex gap-1",
+            })}
+          >
+            <Eye className="size-4" />
+            Voir en ligne
+          </a>
+        ) : (
+          <Button variant="ghost" size="sm" type="button" className="hidden sm:flex" disabled>
+            <Eye className="size-4" />
+            Aperçu
+          </Button>
+        )}
+        <span className="hidden text-creo-xs text-creo-gray-400 xl:inline" title="URL publique">
+          /p/{workspaceSlug}/{pageSlug}
+        </span>
         <Button
           variant="ghost"
           size="sm"

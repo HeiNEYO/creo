@@ -4,6 +4,7 @@ import { LayoutGrid, List, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { DeletePageButton } from "@/components/dashboard/pages/delete-page-button";
 import { NewPageDialog } from "@/components/dashboard/pages/new-page-dialog";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -153,8 +154,13 @@ export function PagesBrowser({ pages }: { pages: DashboardPageRow[] }) {
       ) : view === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p) => (
-            <Link key={p.id} href={`/builder/${p.id}`} prefetch>
-              <Card interactive className="h-full">
+            <Card key={p.id} interactive className="relative h-full p-0">
+              <DeletePageButton
+                pageId={p.id}
+                title={p.title}
+                className="absolute left-2 top-2 z-10 bg-creo-white/90 shadow-sm dark:bg-card/90"
+              />
+              <Link href={`/builder/${p.id}`} prefetch className="block p-5 sm:p-6">
                 <div className="relative aspect-[16/10] rounded-creo-md bg-creo-gray-100">
                   <div className="absolute right-2 top-2">
                     <Badge variant={p.published ? "green" : "gray"}>
@@ -176,8 +182,8 @@ export function PagesBrowser({ pages }: { pages: DashboardPageRow[] }) {
                     Modifié {formatUpdated(p.updated_at)}
                   </p>
                 </div>
-              </Card>
-            </Link>
+              </Link>
+            </Card>
           ))}
         </div>
       ) : (
@@ -207,13 +213,20 @@ export function PagesBrowser({ pages }: { pages: DashboardPageRow[] }) {
                   </td>
                   <td className="px-4 py-3">{formatViews(p.views)}</td>
                   <td className="px-4 py-3">
-                    <Link
-                      href={`/builder/${p.id}`}
-                      prefetch
-                      className={buttonVariants({ variant: "ghost", size: "sm" })}
-                    >
-                      Éditer
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-1">
+                      <Link
+                        href={`/builder/${p.id}`}
+                        prefetch
+                        className={buttonVariants({ variant: "ghost", size: "sm" })}
+                      >
+                        Éditer
+                      </Link>
+                      <DeletePageButton
+                        pageId={p.id}
+                        title={p.title}
+                        label="Supprimer"
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}

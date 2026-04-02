@@ -1,0 +1,14 @@
+---
+description: Déployer sur Vercel après modifications du site CRÉO
+alwaysApply: true
+---
+
+# Déploiement Vercel (CRÉO)
+
+Après toute modification qui touche l’app Next.js (UI, routes, logique, config), **lancer un déploiement production** depuis la racine du projet :
+
+```bash
+npm run deploy:vercel
+```
+
+Ne pas se contenter de dire à l’utilisateur de le faire : **exécuter la commande** une fois les changements validés (build/lint si pertinent). Si le déploiement échoue (auth, réseau), diagnostiquer et proposer une correction.
