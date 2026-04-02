@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import { createClient } from "@/lib/supabase/client";
 import { passwordSchema } from "@/lib/auth/validation";
@@ -14,6 +13,10 @@ export function ResetPasswordForm() {
   const router = useRouter();
   const [sessionOk, setSessionOk] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -24,11 +27,15 @@ export function ResetPasswordForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setFeedback(null);
     const form = e.currentTarget;
     const password = String(new FormData(form).get("password") ?? "");
     const parsed = passwordSchema.safeParse(password);
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Mot de passe invalide.");
+      setFeedback({
+        type: "error",
+        text: parsed.error.issues[0]?.message ?? "Mot de passe invalide.",
+      });
       return;
     }
     setSubmitting(true);
@@ -38,10 +45,10 @@ export function ResetPasswordForm() {
     });
     setSubmitting(false);
     if (error) {
-      toast.error(error.message);
+      setFeedback({ type: "error", text: error.message });
       return;
     }
-    toast.success("Mot de passe mis à jour.");
+    setFeedback({ type: "success", text: "Mot de passe mis à jour." });
     router.push("/dashboard");
     router.refresh();
   }
@@ -62,6 +69,17 @@ export function ResetPasswordForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {feedback ? (
+        <p
+          className={
+            feedback.type === "error"
+              ? "rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              : "rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400"
+          }
+        >
+          {feedback.text}
+        </p>
+      ) : null}
       <div className="space-y-2">
         <Label htmlFor="password">Nouveau mot de passe</Label>
         <Input

@@ -1,18 +1,7 @@
-"use client";
-
-import dynamic from "next/dynamic";
-
-/** Sonner accède à `document` au premier rendu → incompatible SSR Vercel sans dynamic. */
-const Toaster = dynamic(
-  () => import("sonner").then((mod) => mod.Toaster),
-  { ssr: false }
-);
-
+/**
+ * Enveloppe racine (thème, toasts, etc.). Sonner retiré : son bundle cassait le SSR Vercel
+ * (accès à `document` au rendu). Les formulaires affichent déjà les messages inline.
+ */
 export function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <Toaster richColors position="top-center" closeButton />
-    </>
-  );
+  return <>{children}</>;
 }

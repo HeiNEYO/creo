@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
 import { useFormState } from "react-dom";
-import { toast } from "sonner";
 
 import { magicLinkAction } from "@/lib/auth/actions";
 import {
@@ -33,11 +31,6 @@ function FormMessage({ state }: { state: AuthActionState }) {
 
 export function MagicLinkForm() {
   const [state, formAction] = useFormState(magicLinkAction, emptyState);
-
-  useEffect(() => {
-    if (state.success) toast.success(state.success);
-    if (state.error) toast.error(state.error);
-  }, [state.success, state.error]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
