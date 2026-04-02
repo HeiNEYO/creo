@@ -9,12 +9,13 @@ const badgeVariants = cva(
     variants: {
       variant: {
         purple: "bg-creo-purple-pale text-creo-purple",
-        green: "bg-creo-success-pale text-[#059669]",
-        orange: "bg-creo-warning-pale text-[#d97706]",
-        red: "bg-creo-danger-pale text-[#dc2626]",
-        gray: "bg-creo-gray-100 text-[#52525b]",
-        blue: "bg-creo-info-pale text-[#2563eb]",
-        outline: "border-creo-gray-300 bg-transparent text-creo-gray-700",
+        green: "bg-creo-success-pale text-emerald-700 dark:text-emerald-300",
+        orange: "bg-creo-warning-pale text-amber-800 dark:text-amber-200",
+        red: "bg-creo-danger-pale text-red-700 dark:text-red-300",
+        gray: "bg-creo-gray-100 text-creo-gray-700 dark:bg-creo-gray-200 dark:text-creo-gray-700",
+        blue: "bg-creo-info-pale text-[#1490d0] dark:bg-creo-info-pale dark:text-creo-purple",
+        outline:
+          "border-creo-gray-300 bg-transparent text-creo-gray-700 dark:border-creo-gray-300 dark:text-creo-gray-500",
       },
     },
     defaultVariants: {

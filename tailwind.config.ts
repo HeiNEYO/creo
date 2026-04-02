@@ -76,6 +76,10 @@ const config: Config = {
         input: "var(--input)",
         ring: "var(--ring)",
         creo: {
+          blue: "var(--creo-blue)",
+          "blue-soft": "var(--creo-blue-soft)",
+          "blue-deep": "var(--creo-blue-deep)",
+          teal: "var(--creo-teal)",
           purple: "var(--creo-purple)",
           "purple-light": "var(--creo-purple-light)",
           "purple-pale": "var(--creo-purple-pale)",

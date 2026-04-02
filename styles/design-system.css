@@ -1,38 +1,42 @@
 /**
- * CRÉO — Design System (étape 1)
- * Variables sémantiques + pont vers les tokens shadcn utilisés par le thème.
+ * CRÉO — Design system (palette bleue / teal / midnight)
+ * Bleu principal #21A5EC · Bleu clair #90D2F5 · Teal #053F56 · Midnight · #F2F3F7 / #FFFFFF
  */
 
 :root {
-  /* Primaires */
-  --creo-purple: #7c3aed;
-  --creo-purple-light: #8b5cf6;
-  --creo-purple-pale: #f5f3ff;
-  --creo-purple-dark: #6d28d9;
+  /* Marque (noms historiques creo-purple = bleu primaire) */
+  --creo-blue-soft: #90d2f5;
+  --creo-blue: #21a5ec;
+  --creo-blue-deep: #1490d0;
+  --creo-teal: #053f56;
 
-  /* Neutres */
-  --creo-black: #09090b;
-  --creo-gray-900: #18181b;
-  --creo-gray-700: #3f3f46;
-  --creo-gray-500: #71717a;
-  --creo-gray-400: #a1a1aa;
-  --creo-gray-300: #d4d4d8;
-  --creo-gray-200: #e4e4e7;
-  --creo-gray-100: #f4f4f5;
-  --creo-gray-50: #fafafa;
+  --creo-purple: var(--creo-blue);
+  --creo-purple-light: #3eb5f0;
+  --creo-purple-pale: #dff4fc;
+  --creo-purple-dark: var(--creo-blue-deep);
+
+  /* Neutres clair */
+  --creo-black: #0c1a24;
   --creo-white: #ffffff;
+  --creo-gray-50: #f2f3f7;
+  --creo-gray-100: #e8ebf2;
+  --creo-gray-200: #dce1ea;
+  --creo-gray-300: #c5cdd8;
+  --creo-gray-400: #8a95a8;
+  --creo-gray-500: #5c6b7e;
+  --creo-gray-700: #2f3d4d;
+  --creo-gray-900: #152028;
 
-  /* Sémantiques */
-  --creo-success: #10b981;
-  --creo-success-pale: #ecfdf5;
-  --creo-warning: #f59e0b;
-  --creo-warning-pale: #fffbeb;
-  --creo-danger: #ef4444;
-  --creo-danger-pale: #fef2f2;
-  --creo-info: #3b82f6;
-  --creo-info-pale: #eff6ff;
+  /* Sémantiques (inchangés en logique, ajustés pour harmonie froide) */
+  --creo-success: #0d9f6e;
+  --creo-success-pale: #e6faf3;
+  --creo-warning: #e8940c;
+  --creo-warning-pale: #fff8eb;
+  --creo-danger: #e11d48;
+  --creo-danger-pale: #fff1f2;
+  --creo-info: var(--creo-blue);
+  --creo-info-pale: var(--creo-purple-pale);
 
-  /* Espacements (4px) */
   --creo-space-1: 4px;
   --creo-space-2: 8px;
   --creo-space-3: 12px;
@@ -44,14 +48,12 @@
   --creo-space-12: 48px;
   --creo-space-16: 64px;
 
-  /* Rayons */
   --creo-radius-sm: 6px;
   --creo-radius-md: 8px;
   --creo-radius-lg: 12px;
   --creo-radius-xl: 16px;
   --creo-radius-full: 9999px;
 
-  /* Typographie (échelle UI) */
   --creo-text-xs: 11px;
   --creo-text-sm: 13px;
   --creo-text-base: 14px;
@@ -70,120 +72,127 @@
   --creo-leading-2xl: 1.3;
   --creo-leading-3xl: 1.2;
 
-  /* Ombres (modales / dropdowns uniquement) */
   --creo-shadow-elevated:
-    0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -1px rgb(0 0 0 / 0.04);
-  --creo-shadow-card-hover: 0 2px 8px rgb(0 0 0 / 0.06);
-  --creo-shadow-modal: 0 4px 6px -1px rgb(0 0 0 / 0.07),
-    0 2px 4px -1px rgb(0 0 0 / 0.04);
+    0 4px 6px -1px rgb(5 63 86 / 0.08), 0 2px 4px -1px rgb(5 63 86 / 0.04);
+  --creo-shadow-card-hover: 0 2px 12px rgb(5 63 86 / 0.08);
+  --creo-shadow-modal:
+    0 8px 24px rgb(5 63 86 / 0.12), 0 2px 8px rgb(5 63 86 / 0.06);
 
-  /* Focus input */
-  --creo-ring-purple: rgb(124 58 237 / 0.15);
+  --creo-ring-brand: rgb(33 165 236 / 0.22);
+  --creo-ring-purple: var(--creo-ring-brand);
 
-  /* ─── Pont shadcn / thème app (clair) ─── */
+  /* shadcn — clair */
   --background: var(--creo-white);
   --foreground: var(--creo-black);
   --card: var(--creo-white);
   --card-foreground: var(--creo-black);
   --popover: var(--creo-white);
   --popover-foreground: var(--creo-black);
-  --primary: var(--creo-purple);
-  --primary-foreground: var(--creo-white);
+  --primary: var(--creo-blue);
+  --primary-foreground: #ffffff;
   --secondary: var(--creo-gray-100);
   --secondary-foreground: var(--creo-gray-900);
   --muted: var(--creo-gray-100);
   --muted-foreground: var(--creo-gray-500);
   --accent: var(--creo-purple-pale);
-  --accent-foreground: var(--creo-purple);
+  --accent-foreground: var(--creo-teal);
   --destructive: var(--creo-danger);
-  --border: var(--creo-gray-300);
+  --border: var(--creo-gray-200);
   --input: var(--creo-gray-300);
-  --ring: var(--creo-purple);
+  --ring: var(--creo-blue);
   --radius: var(--creo-radius-md);
   --radius-md: var(--creo-radius-md);
 
-  /* Charts / sidebar (compat shadcn) */
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --chart-1: #21a5ec;
+  --chart-2: #90d2f5;
+  --chart-3: #053f56;
+  --chart-4: #1490d0;
+  --chart-5: #5c6b7e;
+  --sidebar: var(--creo-gray-50);
+  --sidebar-foreground: var(--creo-black);
+  --sidebar-primary: var(--creo-blue);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--creo-purple-pale);
+  --sidebar-accent-foreground: var(--creo-teal);
+  --sidebar-border: var(--creo-gray-200);
+  --sidebar-ring: var(--creo-blue);
 }
 
 /**
- * Mode sombre : tokens CRÉO inversés + variables shadcn (classe .dark sur <html>).
+ * Mode sombre — midnight + teal #053F56 + accents bleu glacier
  */
 .dark {
-  --creo-purple: #a78bfa;
-  --creo-purple-light: #c4b5fd;
-  --creo-purple-pale: #2e1064;
-  --creo-purple-dark: #7c3aed;
+  --creo-blue-soft: #90d2f5;
+  --creo-blue: #21a5ec;
+  --creo-blue-deep: #1490d0;
+  --creo-teal: #053f56;
 
-  --creo-white: #0c0c0f;
-  --creo-black: #fafafa;
-  --creo-gray-50: #09090b;
-  --creo-gray-100: #18181b;
-  --creo-gray-200: #27272a;
-  --creo-gray-300: #3f3f46;
-  --creo-gray-400: #71717a;
-  --creo-gray-500: #a1a1aa;
-  --creo-gray-700: #d4d4d8;
-  --creo-gray-900: #f4f4f5;
+  --creo-purple: #90d2f5;
+  --creo-purple-light: #b8e6fc;
+  --creo-purple-pale: #0c2836;
+  --creo-purple-dark: #21a5ec;
+
+  /* Fond page (canvas) vs surfaces (sidebar, cartes) */
+  --creo-gray-50: #030910;
+  --creo-white: #051a24;
+  --creo-gray-100: #061f2a;
+  --creo-gray-200: #0c2f3f;
+  --creo-gray-300: #144a5e;
+  --creo-gray-400: #5a8aa0;
+  --creo-gray-500: #8eb4c8;
+  --creo-gray-700: #c5dde8;
+  --creo-gray-900: #f2f3f7;
+  --creo-black: #f2f3f7;
 
   --creo-success: #34d399;
   --creo-success-pale: #064e3b;
   --creo-warning: #fbbf24;
   --creo-warning-pale: #422006;
-  --creo-danger: #f87171;
-  --creo-danger-pale: #450a0a;
-  --creo-info: #60a5fa;
-  --creo-info-pale: #1e3a5f;
+  --creo-danger: #fb7185;
+  --creo-danger-pale: #4c0519;
+  --creo-info: #38bdf8;
+  --creo-info-pale: #0c2836;
 
   --creo-shadow-elevated:
-    0 4px 6px -1px rgb(0 0 0 / 0.45), 0 2px 4px -1px rgb(0 0 0 / 0.35);
-  --creo-shadow-card-hover: 0 2px 8px rgb(0 0 0 / 0.35);
+    0 4px 24px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.3);
+  --creo-shadow-card-hover: 0 4px 20px rgb(0 0 0 / 0.35);
   --creo-shadow-modal:
-    0 8px 24px rgb(0 0 0 / 0.5), 0 2px 8px rgb(0 0 0 / 0.35);
+    0 12px 40px rgb(0 0 0 / 0.55), 0 4px 12px rgb(0 0 0 / 0.35);
 
-  --creo-ring-purple: rgb(167 139 250 / 0.25);
+  --creo-ring-brand: rgb(144 210 245 / 0.28);
+  --creo-ring-purple: var(--creo-ring-brand);
 
-  --background: var(--creo-white);
-  --foreground: var(--creo-black);
-  --card: #141416;
-  --card-foreground: #fafafa;
-  --popover: #18181b;
-  --popover-foreground: #fafafa;
-  --primary: var(--creo-purple-dark);
-  --primary-foreground: #ffffff;
-  --secondary: #27272a;
-  --secondary-foreground: #fafafa;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --accent: var(--creo-purple-pale);
-  --accent-foreground: #e9d5ff;
-  --destructive: #f87171;
-  --border: rgb(255 255 255 / 0.1);
-  --input: rgb(255 255 255 / 0.12);
-  --ring: #a78bfa;
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #030910;
+  --foreground: #f2f3f7;
+  --card: #06202c;
+  --card-foreground: #f2f3f7;
+  --popover: #073445;
+  --popover-foreground: #f2f3f7;
+  --primary: #21a5ec;
+  --primary-foreground: #030910;
+  --secondary: #053f56;
+  --secondary-foreground: #f2f3f7;
+  --muted: #0c2f3f;
+  --muted-foreground: #8eb4c8;
+  --accent: #0c3444;
+  --accent-foreground: #90d2f5;
+  --destructive: #fb7185;
+  --border: rgb(144 210 245 / 0.12);
+  --input: rgb(144 210 245 / 0.14);
+  --ring: #21a5ec;
+
+  --chart-1: #21a5ec;
+  --chart-2: #90d2f5;
+  --chart-3: #053f56;
+  --chart-4: #f2f3f7;
+  --chart-5: #5a8aa0;
+
+  --sidebar: #04151d;
+  --sidebar-foreground: #f2f3f7;
+  --sidebar-primary: #21a5ec;
+  --sidebar-primary-foreground: #030910;
+  --sidebar-accent: #0c2836;
+  --sidebar-accent-foreground: #90d2f5;
+  --sidebar-border: rgb(144 210 245 / 0.1);
+  --sidebar-ring: #21a5ec;
 }

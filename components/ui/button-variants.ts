@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 
 /** Variants CRÉO : primary / secondary / ghost / danger + tailles sm | md (default) | lg */
 export const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-creo-md border border-transparent bg-clip-padding font-medium whitespace-nowrap outline-none select-none transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(124_58_237/0.15)] focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-1.5 active:not-aria-[haspopup]:translate-y-0",
+  "group/button inline-flex shrink-0 items-center justify-center rounded-creo-md border border-transparent bg-clip-padding font-medium whitespace-nowrap outline-none select-none transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--creo-ring-brand)] focus-visible:ring-offset-0 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 gap-1.5 active:not-aria-[haspopup]:translate-y-0",
   {
     variants: {
       variant: {
