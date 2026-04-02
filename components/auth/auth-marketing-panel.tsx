@@ -16,7 +16,7 @@ export function AuthMarketingPanel() {
         }}
       />
       <div className="relative">
-        <p className="text-xl font-semibold tracking-tight">CRÉO</p>
+        <p className="text-xl font-medium tracking-tight">CRÉO</p>
         <h1 className="mt-10 max-w-md text-creo-3xl font-semibold leading-tight">
           Votre business en un seul endroit
         </h1>

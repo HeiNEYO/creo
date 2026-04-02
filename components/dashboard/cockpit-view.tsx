@@ -49,7 +49,7 @@ export function CockpitView({ workspace }: { workspace: WorkspaceInfo }) {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-creo-2xl font-semibold text-creo-black">
+        <h1 className="text-creo-2xl font-medium text-creo-black">
           Cockpit
         </h1>
         <p className="mt-1 text-creo-base text-creo-gray-500">

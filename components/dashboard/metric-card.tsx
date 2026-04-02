@@ -33,7 +33,7 @@ export function MetricCard({
         </div>
       </div>
       <p className="mt-4 text-creo-sm text-creo-gray-500">{label}</p>
-      <p className="mt-1 text-creo-2xl font-semibold text-creo-black">{value}</p>
+      <p className="mt-1 text-creo-2xl font-medium text-creo-black">{value}</p>
       <p
         className={cn(
           "mt-2 text-creo-sm font-medium",

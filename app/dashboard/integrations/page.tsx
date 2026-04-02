@@ -40,7 +40,7 @@ export default function IntegrationsPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {integrations.map((i) => (
           <Card key={i.name} className="p-5">
-            <div className="flex size-10 items-center justify-center rounded-creo-md bg-creo-gray-100 text-creo-sm font-bold text-creo-gray-600">
+            <div className="flex size-10 items-center justify-center rounded-creo-md bg-creo-gray-100 text-creo-sm font-medium text-creo-gray-600 dark:text-muted-foreground">
               {i.name.slice(0, 2)}
             </div>
             <h3 className="mt-4 text-creo-md font-semibold">{i.name}</h3>

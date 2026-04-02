@@ -92,6 +92,7 @@ const config: Config = {
             300: "var(--creo-gray-300)",
             400: "var(--creo-gray-400)",
             500: "var(--creo-gray-500)",
+            600: "var(--creo-gray-600)",
             700: "var(--creo-gray-700)",
             900: "var(--creo-gray-900)",
           },

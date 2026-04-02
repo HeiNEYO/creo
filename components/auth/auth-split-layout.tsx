@@ -12,7 +12,7 @@ export function AuthSplitLayout({ children }: { children: React.ReactNode }) {
         <div className="border-b border-creo-gray-200 px-6 py-4 lg:hidden">
           <Link
             href="/"
-            className="text-lg font-semibold tracking-tight text-creo-purple"
+            className="text-lg font-medium tracking-tight text-creo-purple"
           >
             CRÉO
           </Link>
@@ -21,7 +21,7 @@ export function AuthSplitLayout({ children }: { children: React.ReactNode }) {
           <div className="w-full max-w-md">
             <Link
               href="/"
-              className="mb-8 hidden text-lg font-semibold text-creo-purple lg:inline-block"
+              className="mb-8 hidden text-lg font-medium text-creo-purple lg:inline-block"
             >
               CRÉO
             </Link>

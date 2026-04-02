@@ -1,10 +1,9 @@
-# Déploiement production à chaque push sur `main`.
-# Secrets GitHub (Settings → Secrets → Actions) :
-#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-# (Token : Vercel → Settings → Tokens ; org/project : fichier .vercel/project.json après `vercel link`)
+# Déploiement production via CLI (en plus ou à la place du déploiement Git natif Vercel).
 #
-# Si le dépôt est déjà connecté dans Vercel (Import Git) et que les déploiements auto marchent,
-# ce workflow peut déclencher un second build : garde une seule des deux méthodes.
+# Activation : GitHub → Settings → Variables → Actions → VERCEL_CI_ENABLED = true
+# Secrets : VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+#
+# Si cette variable n’est pas à true, le job est ignoré (pas d’échec rouge à chaque push).
 
 name: Deploy Vercel Production
 
@@ -12,6 +11,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 concurrency:
   group: vercel-production
@@ -19,6 +19,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: ${{ vars.VERCEL_CI_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

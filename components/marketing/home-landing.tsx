@@ -10,7 +10,7 @@ export function HomeLanding() {
   return (
     <div className="bg-creo-white text-creo-black">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <span className="text-lg font-semibold text-creo-purple">CRÉO</span>
+        <span className="text-lg font-medium text-creo-purple">CRÉO</span>
         <div className="flex items-center gap-3">
           <Link
             href="/login"
@@ -149,7 +149,7 @@ export function HomeLanding() {
 
       <footer className="border-t border-creo-gray-200 py-10">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 sm:flex-row">
-          <span className="font-semibold text-creo-purple">CRÉO</span>
+          <span className="font-medium text-creo-purple">CRÉO</span>
           <div className="flex gap-6 text-creo-sm text-creo-gray-500">
             <Link href="/login" className="hover:text-creo-purple">
               Connexion
