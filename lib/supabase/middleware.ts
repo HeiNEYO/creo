@@ -24,7 +24,7 @@ export function createMiddlewareSupabaseClient(request: NextRequest) {
   }
 
   const { url, anonKey } = config;
-  let response = NextResponse.next({ request: { headers: request.headers } });
+  const response = NextResponse.next({ request: { headers: request.headers } });
   const rememberVal = request.cookies.get(CREO_REMEMBER_COOKIE)?.value;
 
   const supabase = createServerClient(url, anonKey, {
@@ -36,9 +36,7 @@ export function createMiddlewareSupabaseClient(request: NextRequest) {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        response = NextResponse.next({
-          request: { headers: request.headers },
-        });
+        /* Ne pas recréer la réponse : sinon les Set-Cookie des appels précédents sont perdus. */
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });

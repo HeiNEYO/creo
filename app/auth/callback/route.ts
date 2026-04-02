@@ -39,7 +39,7 @@ export async function GET(request: Request) {
   const redirectToApp = () =>
     NextResponse.redirect(`${origin}${safeNext}`);
 
-  let response = redirectToApp();
+  const response = redirectToApp();
 
   const supabase = createServerClient(url, anonKey, {
     cookieOptions: {
@@ -50,7 +50,6 @@ export async function GET(request: Request) {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        response = redirectToApp();
         cookiesToSet.forEach(({ name, value, options }) => {
           response.cookies.set(name, value, options);
         });

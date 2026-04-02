@@ -18,15 +18,20 @@ export function authCookieMaxAge(rememberCookieValue: string | undefined): numbe
 }
 
 /** À appeler dans le navigateur avant signIn / signUp. */
+function cookieSecureSuffix(): string {
+  if (typeof window === "undefined") return "";
+  return window.location.protocol === "https:" ? "; Secure" : "";
+}
+
 export function setRememberPreferenceCookie(remember: boolean): void {
   if (typeof document === "undefined") return;
   const v = remember ? "1" : "0";
-  document.cookie = `${CREO_REMEMBER_COOKIE}=${v}; Path=/; Max-Age=${PREFERENCE_MAX_AGE}; SameSite=Lax`;
+  document.cookie = `${CREO_REMEMBER_COOKIE}=${v}; Path=/; Max-Age=${PREFERENCE_MAX_AGE}; SameSite=Lax${cookieSecureSuffix()}`;
 }
 
 export function clearRememberPreferenceCookie(): void {
   if (typeof document === "undefined") return;
-  document.cookie = `${CREO_REMEMBER_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax`;
+  document.cookie = `${CREO_REMEMBER_COOKIE}=; Path=/; Max-Age=0; SameSite=Lax${cookieSecureSuffix()}`;
 }
 
 export function readRememberCookieValueFromDocument(): string | undefined {

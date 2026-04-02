@@ -45,6 +45,8 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
     const remember =
       formData.get("remember") === "on" || formData.get("remember") === "true";
     setRememberPreferenceCookie(remember);
+    /* Laisser le navigateur enregistrer le cookie avant de créer le client (durée des cookies session). */
+    await new Promise<void>((r) => queueMicrotask(() => r()));
 
     const supabase = createClient();
     const signInResult = await supabase.auth.signInWithPassword(parsed.data);

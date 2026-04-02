@@ -40,6 +40,7 @@ export function RegisterForm() {
     const remember =
       formData.get("remember") === "on" || formData.get("remember") === "true";
     setRememberPreferenceCookie(remember);
+    await new Promise<void>((r) => queueMicrotask(() => r()));
 
     const supabase = createClient();
     const signUpResult = await supabase.auth.signUp({

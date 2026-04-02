@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRight, Menu, Search, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { DashboardCommandPalette } from "@/components/dashboard/dashboard-command-palette";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import {
   dashboardNavItems,
@@ -14,13 +15,31 @@ import { cn } from "@/lib/utils";
 
 type DashboardShellProps = {
   userEmail: string;
+  /** Pages du workspace pour la palette ⌘K (recherche + accès rapide builder). */
+  searchPages?: { id: string; title: string }[];
   children: React.ReactNode;
 };
 
 /** DA type admin Shopify : barre sup #1a1a1a, rail #ebebeb, fond contenu #f6f6f7. */
-export function DashboardShell({ userEmail, children }: DashboardShellProps) {
+export function DashboardShell({
+  userEmail,
+  searchPages = [],
+  children,
+}: DashboardShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [commandOpen, setCommandOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setCommandOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const NavLink = ({
     href,
@@ -107,6 +126,15 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
           {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
 
+        <button
+          type="button"
+          onClick={() => setCommandOpen(true)}
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-white/90 hover:bg-white/10 md:hidden"
+          aria-label="Rechercher"
+        >
+          <Search className="size-5" />
+        </button>
+
         <Link
           href="/dashboard"
           className="shrink-0 text-lg font-semibold tracking-tight text-white"
@@ -115,17 +143,17 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
         </Link>
 
         <div className="relative mx-auto hidden min-w-0 flex-1 md:block md:max-w-xl">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/35"
-            aria-hidden
-          />
-          <input
-            type="search"
-            readOnly
-            placeholder="Rechercher"
-            className="h-9 w-full cursor-default rounded-lg border-0 bg-white/10 pl-10 pr-16 text-sm text-white placeholder:text-white/40 outline-none ring-1 ring-inset ring-white/10"
-            aria-label="Rechercher (bientôt disponible)"
-          />
+          <button
+            type="button"
+            onClick={() => setCommandOpen(true)}
+            className="relative flex h-9 w-full cursor-pointer items-center rounded-lg border-0 bg-white/10 pl-10 pr-16 text-left text-sm text-white/50 ring-1 ring-inset ring-white/10 transition-colors hover:bg-white/[0.12] hover:text-white/70"
+          >
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/35"
+              aria-hidden
+            />
+            <span className="truncate">Rechercher…</span>
+          </button>
           <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-sans text-[10px] font-medium text-white/45 sm:inline-block">
             ⌘K
           </kbd>
@@ -172,6 +200,12 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
           <div className="mx-auto max-w-[1600px]">{children}</div>
         </main>
       </div>
+
+      <DashboardCommandPalette
+        open={commandOpen}
+        onOpenChange={setCommandOpen}
+        pages={searchPages}
+      />
     </div>
   );
 }
