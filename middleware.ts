@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { getSupabasePublicEnv } from "@/lib/supabase/env-public";
 import { createMiddlewareSupabaseClient } from "@/lib/supabase/middleware";
 import { readAuthUser } from "@/lib/supabase/read-auth-user";
+import { ensureDefaultWorkspaceSafe } from "@/lib/workspaces/ensure-default";
 
 function isProtectedPath(path: string) {
   return (
@@ -30,6 +31,13 @@ export async function middleware(request: NextRequest) {
   }
 
   const user = await readAuthUser(supabase);
+
+  if (
+    user &&
+    (path.startsWith("/dashboard") || path.startsWith("/builder"))
+  ) {
+    await ensureDefaultWorkspaceSafe(supabase);
+  }
 
   if (isProtectedPath(path) && !user) {
     const redirectUrl = new URL("/login", request.url);

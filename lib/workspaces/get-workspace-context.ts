@@ -1,6 +1,5 @@
 import { readAuthUser } from "@/lib/supabase/read-auth-user";
 import { createClient } from "@/lib/supabase/server";
-import { ensureDefaultWorkspaceSafe } from "@/lib/workspaces/ensure-default";
 import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
 
 export type WorkspaceContext = {
@@ -11,8 +10,8 @@ export type WorkspaceContext = {
 
 /**
  * Contexte serveur : client Supabase + utilisateur + premier workspace membre.
- * Si aucun workspace (session ancienne, RPC jamais appelée, etc.), tente
- * `ensure_default_workspace` puis relit l’id.
+ * Le bootstrap `ensure_default_workspace` est déclenché dans le middleware
+ * (dashboard / builder) pour éviter une course avec le rendu RSC.
  */
 export async function getWorkspaceContext(): Promise<WorkspaceContext> {
   const supabase = createClient();
@@ -22,12 +21,7 @@ export async function getWorkspaceContext(): Promise<WorkspaceContext> {
     return { supabase, user: null, workspaceId: null };
   }
 
-  let workspaceId = await getFirstWorkspaceIdForUser(supabase, user.id);
-
-  if (!workspaceId) {
-    await ensureDefaultWorkspaceSafe(supabase);
-    workspaceId = await getFirstWorkspaceIdForUser(supabase, user.id);
-  }
+  const workspaceId = await getFirstWorkspaceIdForUser(supabase, user.id);
 
   return {
     supabase,

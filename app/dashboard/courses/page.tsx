@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Card } from "@/components/ui/card";
+import { isRedirectError } from "@/lib/next/is-redirect-error";
 import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +34,29 @@ type CourseRow = {
 };
 
 export default async function CoursesPage() {
+  try {
+    return await CoursesPageContent();
+  } catch (error) {
+    if (isRedirectError(error)) throw error;
+    const message = error instanceof Error ? error.message : String(error);
+    return (
+      <Card className="border-red-200 bg-red-50/90 p-6 dark:border-red-900/50 dark:bg-red-950/30">
+        <p className="text-creo-sm font-medium text-red-800 dark:text-red-200">
+          Erreur lors du chargement des formations
+        </p>
+        <p className="mt-2 break-all font-mono text-creo-xs text-red-700 dark:text-red-300">
+          {message}
+        </p>
+        <p className="mt-3 text-creo-xs text-red-600/90 dark:text-red-300/80">
+          Si le message est vide, ouvre les logs Vercel (fonction /dashboard/courses) pour la stack
+          complète.
+        </p>
+      </Card>
+    );
+  }
+}
+
+async function CoursesPageContent() {
   const { supabase, user, workspaceId } = await getWorkspaceContext();
 
   if (!user) {
@@ -106,10 +130,15 @@ export default async function CoursesPage() {
             Aucun workspace disponible
           </p>
           <p className="mt-2 text-creo-sm text-amber-800/90 dark:text-amber-200/90">
-            La fonction SQL <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/50">ensure_default_workspace</code>{" "}
-            n’a pas pu créer ton espace (migration non appliquée ou erreur Supabase). Applique la migration{" "}
-            <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/50">20260402140000_ensure_default_workspace_rpc.sql</code>{" "}
-            dans le SQL Editor Supabase, puis recharge la page.
+            La fonction SQL{" "}
+            <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/50">
+              ensure_default_workspace
+            </code>{" "}
+            n’a pas créé d’espace (migration ou droits Supabase). Vérifie la migration{" "}
+            <code className="rounded bg-amber-100 px-1 dark:bg-amber-900/50">
+              20260402140000_ensure_default_workspace_rpc.sql
+            </code>
+            , puis recharge.
           </p>
         </Card>
       ) : null}
@@ -123,8 +152,9 @@ export default async function CoursesPage() {
             {queryError}
           </p>
           <p className="mt-3 text-creo-xs text-red-600/90 dark:text-red-300/80">
-            Vérifie que la table <code className="rounded bg-red-100 px-1 dark:bg-red-900/50">courses</code>{" "}
-            existe et que les migrations sont appliquées sur ton projet Supabase.
+            Vérifie que la table{" "}
+            <code className="rounded bg-red-100 px-1 dark:bg-red-900/50">courses</code> existe
+            (migration initiale) et les politiques RLS sur ton projet Supabase.
           </p>
         </Card>
       ) : null}

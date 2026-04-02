@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 import {
   authCookieMaxAge,
@@ -17,8 +18,11 @@ function getSupabaseServerConfig(): { url: string; anonKey: string } {
   return cfg;
 }
 
-/** Client Supabase pour les Server Components, Server Actions et Route Handlers. */
-export function createClient() {
+/**
+ * Un seul client Supabase par requête RSC (layout + pages partagent la même instance).
+ * Évite des doubles appels cookies / refresh qui peuvent faire échouer le rendu.
+ */
+function createSupabaseServerClientInner() {
   const { url, anonKey } = getSupabaseServerConfig();
   const cookieStore = cookies();
   const rememberVal = cookieStore.get(CREO_REMEMBER_COOKIE)?.value;
@@ -43,3 +47,6 @@ export function createClient() {
     },
   });
 }
+
+/** Client Supabase pour les Server Components, Server Actions et Route Handlers. */
+export const createClient = cache(createSupabaseServerClientInner);
