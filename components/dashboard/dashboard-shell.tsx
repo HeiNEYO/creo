@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, X } from "lucide-react";
+import { ChevronRight, Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -17,7 +17,7 @@ type DashboardShellProps = {
   children: React.ReactNode;
 };
 
-/** DA type admin Shopify : barre sup #1a1a1a, rail #f1f1f1, fond contenu #f6f6f7. */
+/** DA type admin Shopify : barre sup #1a1a1a, rail #ebebeb, fond contenu #f6f6f7. */
 export function DashboardShell({ userEmail, children }: DashboardShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,39 +41,54 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
         href={href}
         onClick={() => setMobileOpen(false)}
         className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-creo-sm transition-colors",
+          "flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-[13px] leading-snug transition-[background-color,color,box-shadow] duration-150",
           active
-            ? "bg-white font-semibold text-[#202223] shadow-sm ring-1 ring-black/[0.06]"
-            : "font-medium text-[#616161] hover:bg-black/[0.04]"
+            ? "bg-white font-semibold text-black shadow-[0_1px_0_rgba(0,0,0,0.04)]"
+            : "font-normal text-[#4a4a4a] hover:bg-black/[0.035]"
         )}
       >
         <Icon
           className={cn(
-            "size-4 shrink-0",
-            active ? "text-[#202223]" : "text-[#616161]"
+            "size-[18px] shrink-0 stroke-[1.5]",
+            active ? "text-black" : "text-[#4a4a4a]"
           )}
         />
-        {label}
+        <span className="min-w-0 flex-1 truncate">{label}</span>
       </Link>
     );
   };
 
   const sidebarInner = (
-    <>
-      <nav className="flex-1 overflow-y-auto p-3 pt-2 md:pt-4">
-        <ul className="space-y-0.5">
-          {dashboardNavItems.map((item) => (
-            <li key={item.href}>
-              <NavLink {...item} />
-            </li>
-          ))}
-          <li className="pt-3">
-            <div className="my-2 border-t border-[#e3e5e8]" />
+    <nav className="flex-1 overflow-y-auto px-2 pb-4 pt-2 md:px-2.5 md:pt-3">
+      <ul className="space-y-px">
+        {dashboardNavItems.map((item) => (
+          <li key={item.href}>
+            <NavLink {...item} />
+          </li>
+        ))}
+      </ul>
+
+      {/* Bloc type « Sales channels » Shopify */}
+      <div className="mt-4 px-1">
+        <div
+          className="flex cursor-default items-center justify-between gap-2 py-2 pl-1.5 pr-1"
+          role="presentation"
+        >
+          <span className="text-[12px] font-medium text-[#6d7175]">
+            Formation & accès
+          </span>
+          <ChevronRight
+            className="size-3.5 shrink-0 text-[#b0b3b8]"
+            aria-hidden
+          />
+        </div>
+        <ul className="space-y-px">
+          <li>
             <NavLink {...learnNavItem} />
           </li>
         </ul>
-      </nav>
-    </>
+      </div>
+    </nav>
   );
 
   return (
@@ -139,13 +154,13 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
 
         <aside
           className={cn(
-            "fixed left-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-[240px] flex-col border-r border-[#e3e5e8] bg-[#f1f1f1] transition-transform duration-200 md:static md:top-0 md:z-0 md:h-auto md:min-h-[calc(100dvh-3.5rem)] md:translate-x-0",
+            "fixed left-0 top-14 z-40 flex h-[calc(100dvh-3.5rem)] w-[252px] flex-col border-r border-[#d2d5d8] bg-[#ebebeb] transition-transform duration-200 md:static md:top-0 md:z-0 md:h-auto md:min-h-[calc(100dvh-3.5rem)] md:translate-x-0",
             mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           )}
         >
-          <div className="flex h-12 items-center border-b border-[#e3e5e8] px-4 md:hidden">
-            <span className="text-creo-sm font-semibold text-[#202223]">
-              Navigation
+          <div className="flex h-12 items-center border-b border-[#d2d5d8] bg-[#ebebeb] px-4 md:hidden">
+            <span className="text-[13px] font-semibold text-[#202223]">
+              Menu
             </span>
           </div>
           {sidebarInner}
