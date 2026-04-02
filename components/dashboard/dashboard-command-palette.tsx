@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { FileText, Search } from "lucide-react";
+import { FileText, Loader2, Search } from "lucide-react";
 
 import {
   dashboardNavItems,
@@ -20,19 +20,66 @@ type PaletteItem = {
 type DashboardCommandPaletteProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  pages?: { id: string; title: string }[];
 };
+
+async function fetchSearchPages(): Promise<{ id: string; title: string }[]> {
+  const res = await fetch("/api/dashboard/search-pages", {
+    credentials: "same-origin",
+  });
+  if (!res.ok) return [];
+  const data = (await res.json()) as { pages?: { id: string; title: string }[] };
+  return data.pages ?? [];
+}
 
 export function DashboardCommandPalette({
   open,
   onOpenChange,
-  pages = [],
 }: DashboardCommandPaletteProps) {
   const router = useRouter();
   const [q, setQ] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [remotePages, setRemotePages] = useState<
+    { id: string; title: string }[] | null
+  >(null);
+  const [pagesLoading, setPagesLoading] = useState(false);
+  const fetchStartedRef = useRef(false);
+
+  const loadPages = useCallback(async () => {
+    if (remotePages !== null || fetchStartedRef.current) return;
+    fetchStartedRef.current = true;
+    setPagesLoading(true);
+    try {
+      const pages = await fetchSearchPages();
+      setRemotePages(pages);
+    } catch {
+      setRemotePages([]);
+    } finally {
+      setPagesLoading(false);
+    }
+  }, [remotePages]);
+
+  /* Préchargement discret après le premier rendu (palette plus réactive au ⌘K). */
+  useEffect(() => {
+    const run = () => {
+      void loadPages();
+    };
+    if (typeof window === "undefined") return;
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(run, { timeout: 4000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = globalThis.setTimeout(run, 2500);
+    return () => globalThis.clearTimeout(id);
+  }, [loadPages]);
+
+  useEffect(() => {
+    if (open) {
+      void loadPages();
+    }
+  }, [open, loadPages]);
 
   const items = useMemo<PaletteItem[]>(() => {
+    const pageList = remotePages ?? [];
     const nav: PaletteItem[] = [
       ...dashboardNavItems.map((i) => ({
         id: `nav-${i.href}`,
@@ -46,7 +93,7 @@ export function DashboardCommandPalette({
         href: learnNavItem.href,
         group: "Navigation",
       },
-      ...pages.map((p) => ({
+      ...pageList.map((p) => ({
         id: `page-${p.id}`,
         label: p.title?.trim() ? p.title : "Page sans titre",
         href: `/builder/${p.id}`,
@@ -54,7 +101,7 @@ export function DashboardCommandPalette({
       })),
     ];
     return nav;
-  }, [pages]);
+  }, [remotePages]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -117,14 +164,23 @@ export function DashboardCommandPalette({
             placeholder="Une page, une section…"
             className="h-12 w-full bg-transparent text-sm text-[#202223] outline-none placeholder:text-[#8c9196] dark:text-white dark:placeholder:text-[#737373]"
           />
-          <kbd className="hidden shrink-0 rounded border border-[#e3e5e8] bg-[#f6f6f7] px-1.5 py-0.5 font-mono text-[10px] text-[#616161] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#a3a3a3] sm:inline">
-            Esc
-          </kbd>
+          {pagesLoading ? (
+            <Loader2
+              className="size-4 shrink-0 animate-spin text-[#616161] dark:text-[#a3a3a3]"
+              aria-hidden
+            />
+          ) : (
+            <kbd className="hidden shrink-0 rounded border border-[#e3e5e8] bg-[#f6f6f7] px-1.5 py-0.5 font-mono text-[10px] text-[#616161] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#a3a3a3] sm:inline">
+              Esc
+            </kbd>
+          )}
         </div>
         <ul className="max-h-[min(50vh,320px)] overflow-y-auto p-2">
           {filtered.length === 0 ? (
             <li className="px-3 py-8 text-center text-sm text-[#616161] dark:text-[#a3a3a3]">
-              Aucun résultat.
+              {pagesLoading && !q.trim()
+                ? "Chargement des pages…"
+                : "Aucun résultat."}
             </li>
           ) : (
             filtered.map((item) => (

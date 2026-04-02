@@ -1,19 +1,26 @@
+import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
 
-import { CockpitView } from "@/components/dashboard/cockpit-view";
-import { readAuthUser } from "@/lib/supabase/read-auth-user";
-import { createClient } from "@/lib/supabase/server";
-import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
+import { DashboardMainSkeleton } from "@/components/dashboard/dashboard-page-skeleton";
+import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
+
+const CockpitView = dynamic(
+  () =>
+    import("@/components/dashboard/cockpit-view").then((m) => ({
+      default: m.CockpitView,
+    })),
+  {
+    loading: () => <DashboardMainSkeleton />,
+    ssr: true,
+  }
+);
 
 export default async function DashboardHomePage() {
-  const supabase = createClient();
-  const user = await readAuthUser(supabase);
+  const { supabase, user, workspaceId } = await getWorkspaceContext();
 
   if (!user) {
     redirect("/login");
   }
-
-  const workspaceId = await getFirstWorkspaceIdForUser(supabase, user.id);
 
   const { data: workspace } = workspaceId
     ? await supabase

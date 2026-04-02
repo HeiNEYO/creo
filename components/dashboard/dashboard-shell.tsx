@@ -15,17 +15,11 @@ import { cn } from "@/lib/utils";
 
 type DashboardShellProps = {
   userEmail: string;
-  /** Pages du workspace pour la palette ⌘K (recherche + accès rapide builder). */
-  searchPages?: { id: string; title: string }[];
   children: React.ReactNode;
 };
 
 /** DA type admin Shopify : barre sup #1a1a1a, rail #ebebeb, fond contenu #f6f6f7. */
-export function DashboardShell({
-  userEmail,
-  searchPages = [],
-  children,
-}: DashboardShellProps) {
+export function DashboardShell({ userEmail, children }: DashboardShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -58,6 +52,7 @@ export function DashboardShell({
     return (
       <Link
         href={href}
+        prefetch
         onClick={() => setMobileOpen(false)}
         className={cn(
           "flex w-full items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-[13px] leading-snug transition-[background-color,color,box-shadow] duration-150",
@@ -204,7 +199,6 @@ export function DashboardShell({
       <DashboardCommandPalette
         open={commandOpen}
         onOpenChange={setCommandOpen}
-        pages={searchPages}
       />
     </div>
   );

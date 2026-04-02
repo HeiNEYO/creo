@@ -153,7 +153,7 @@ export function PagesBrowser({ pages }: { pages: DashboardPageRow[] }) {
       ) : view === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p) => (
-            <Link key={p.id} href={`/builder/${p.id}`}>
+            <Link key={p.id} href={`/builder/${p.id}`} prefetch>
               <Card interactive className="h-full">
                 <div className="relative aspect-[16/10] rounded-creo-md bg-creo-gray-100">
                   <div className="absolute right-2 top-2">
@@ -209,6 +209,7 @@ export function PagesBrowser({ pages }: { pages: DashboardPageRow[] }) {
                   <td className="px-4 py-3">
                     <Link
                       href={`/builder/${p.id}`}
+                      prefetch
                       className={buttonVariants({ variant: "ghost", size: "sm" })}
                     >
                       Éditer
