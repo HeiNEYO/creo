@@ -20,9 +20,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground font-normal antialiased;
     font-size: var(--creo-text-base);
     line-height: var(--creo-leading-base);
+    font-weight: 400;
   }
   html {
     @apply font-sans;

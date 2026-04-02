@@ -21,7 +21,7 @@ export function PageHeader({
       )}
     >
       <div>
-        <h1 className="text-creo-2xl font-semibold text-creo-black">{title}</h1>
+        <h1 className="text-creo-2xl font-medium text-creo-black">{title}</h1>
         {description ? (
           <p className="mt-1 text-creo-base text-creo-gray-500">
             {description}

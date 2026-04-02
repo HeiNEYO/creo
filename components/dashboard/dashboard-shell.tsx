@@ -43,7 +43,7 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
           "flex items-center gap-3 rounded-creo-md px-3 py-2 text-creo-sm font-medium transition-colors",
           active
             ? "bg-creo-purple-pale text-creo-purple"
-            : "text-creo-gray-700 hover:bg-creo-gray-100"
+            : "text-creo-gray-700 hover:bg-creo-gray-100 dark:text-creo-gray-500 dark:hover:bg-white/[0.06]"
         )}
       >
         <Icon className="size-4 shrink-0 opacity-80" />
@@ -57,7 +57,7 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
       <div className="flex h-14 items-center border-b border-creo-gray-200 px-4">
         <Link
           href="/dashboard"
-          className="text-lg font-semibold tracking-tight text-creo-purple"
+          className="text-lg font-medium tracking-tight text-creo-purple"
         >
           CRÉO
         </Link>
@@ -70,7 +70,7 @@ export function DashboardShell({ userEmail, children }: DashboardShellProps) {
             </li>
           ))}
           <li className="pt-2">
-            <div className="my-2 border-t border-creo-gray-100" />
+            <div className="my-2 border-t border-creo-gray-200" />
             <NavLink {...learnNavItem} />
           </li>
         </ul>

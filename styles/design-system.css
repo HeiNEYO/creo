@@ -1,41 +1,44 @@
 /**
- * CRÉO — Design system (palette bleue / teal / midnight)
- * Bleu principal #21A5EC · Bleu clair #90D2F5 · Teal #053F56 · Midnight · #F2F3F7 / #FFFFFF
+ * CRÉO — Design system
+ * Sombre : fond #0b0b0b partout, boutons #0033ff, texte blanc.
+ * Clair : neutres propres, même bleu bouton.
  */
 
 :root {
-  /* Marque (noms historiques creo-purple = bleu primaire) */
-  --creo-blue-soft: #90d2f5;
-  --creo-blue: #21a5ec;
-  --creo-blue-deep: #1490d0;
-  --creo-teal: #053f56;
+  --creo-bg-dark: #0b0b0b;
+  --creo-btn-blue: #0033ff;
+  --creo-btn-blue-hover: #2244ff;
+  --creo-btn-blue-active: #002bdb;
 
-  --creo-purple: var(--creo-blue);
-  --creo-purple-light: #3eb5f0;
-  --creo-purple-pale: #dff4fc;
-  --creo-purple-dark: var(--creo-blue-deep);
+  --creo-blue-soft: #6688ff;
+  --creo-blue: #0033ff;
+  --creo-blue-deep: #002bdb;
+  --creo-teal: #1a1a1a;
 
-  /* Neutres clair */
-  --creo-black: #0c1a24;
+  --creo-purple: #0033ff;
+  --creo-purple-light: #2244ff;
+  --creo-purple-pale: #e8ecff;
+  --creo-purple-dark: #002bdb;
+
+  --creo-black: #0b0b0b;
   --creo-white: #ffffff;
-  --creo-gray-50: #f2f3f7;
-  --creo-gray-100: #e8ebf2;
-  --creo-gray-200: #dce1ea;
-  --creo-gray-300: #c5cdd8;
-  --creo-gray-400: #8a95a8;
-  --creo-gray-500: #5c6b7e;
-  --creo-gray-700: #2f3d4d;
-  --creo-gray-900: #152028;
+  --creo-gray-50: #fafafa;
+  --creo-gray-100: #f4f4f5;
+  --creo-gray-200: #e4e4e7;
+  --creo-gray-300: #d4d4d8;
+  --creo-gray-400: #a1a1aa;
+  --creo-gray-500: #71717a;
+  --creo-gray-700: #3f3f46;
+  --creo-gray-900: #18181b;
 
-  /* Sémantiques (inchangés en logique, ajustés pour harmonie froide) */
-  --creo-success: #0d9f6e;
-  --creo-success-pale: #e6faf3;
-  --creo-warning: #e8940c;
-  --creo-warning-pale: #fff8eb;
-  --creo-danger: #e11d48;
-  --creo-danger-pale: #fff1f2;
-  --creo-info: var(--creo-blue);
-  --creo-info-pale: var(--creo-purple-pale);
+  --creo-success: #22c55e;
+  --creo-success-pale: #ecfdf5;
+  --creo-warning: #eab308;
+  --creo-warning-pale: #fefce8;
+  --creo-danger: #ef4444;
+  --creo-danger-pale: #fef2f2;
+  --creo-info: #0033ff;
+  --creo-info-pale: #e8ecff;
 
   --creo-space-1: 4px;
   --creo-space-2: 8px;
@@ -73,126 +76,125 @@
   --creo-leading-3xl: 1.2;
 
   --creo-shadow-elevated:
-    0 4px 6px -1px rgb(5 63 86 / 0.08), 0 2px 4px -1px rgb(5 63 86 / 0.04);
-  --creo-shadow-card-hover: 0 2px 12px rgb(5 63 86 / 0.08);
+    0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -1px rgb(0 0 0 / 0.04);
+  --creo-shadow-card-hover: 0 2px 12px rgb(0 0 0 / 0.06);
   --creo-shadow-modal:
-    0 8px 24px rgb(5 63 86 / 0.12), 0 2px 8px rgb(5 63 86 / 0.06);
+    0 8px 24px rgb(0 0 0 / 0.12), 0 2px 8px rgb(0 0 0 / 0.06);
 
-  --creo-ring-brand: rgb(33 165 236 / 0.22);
+  --creo-ring-brand: rgb(0 51 255 / 0.28);
   --creo-ring-purple: var(--creo-ring-brand);
 
-  /* shadcn — clair */
-  --background: var(--creo-white);
-  --foreground: var(--creo-black);
-  --card: var(--creo-white);
-  --card-foreground: var(--creo-black);
-  --popover: var(--creo-white);
-  --popover-foreground: var(--creo-black);
-  --primary: var(--creo-blue);
+  /* Mode clair — shadcn */
+  --background: #ffffff;
+  --foreground: #0b0b0b;
+  --card: #ffffff;
+  --card-foreground: #0b0b0b;
+  --popover: #ffffff;
+  --popover-foreground: #0b0b0b;
+  --primary: #0033ff;
   --primary-foreground: #ffffff;
   --secondary: var(--creo-gray-100);
-  --secondary-foreground: var(--creo-gray-900);
+  --secondary-foreground: #0b0b0b;
   --muted: var(--creo-gray-100);
   --muted-foreground: var(--creo-gray-500);
   --accent: var(--creo-purple-pale);
-  --accent-foreground: var(--creo-teal);
+  --accent-foreground: #0033ff;
   --destructive: var(--creo-danger);
   --border: var(--creo-gray-200);
   --input: var(--creo-gray-300);
-  --ring: var(--creo-blue);
+  --ring: #0033ff;
   --radius: var(--creo-radius-md);
   --radius-md: var(--creo-radius-md);
 
-  --chart-1: #21a5ec;
-  --chart-2: #90d2f5;
-  --chart-3: #053f56;
-  --chart-4: #1490d0;
-  --chart-5: #5c6b7e;
+  --chart-1: #0033ff;
+  --chart-2: #6688ff;
+  --chart-3: #0b0b0b;
+  --chart-4: #2244ff;
+  --chart-5: #71717a;
   --sidebar: var(--creo-gray-50);
-  --sidebar-foreground: var(--creo-black);
-  --sidebar-primary: var(--creo-blue);
+  --sidebar-foreground: #0b0b0b;
+  --sidebar-primary: #0033ff;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--creo-purple-pale);
-  --sidebar-accent-foreground: var(--creo-teal);
+  --sidebar-accent-foreground: #0033ff;
   --sidebar-border: var(--creo-gray-200);
-  --sidebar-ring: var(--creo-blue);
+  --sidebar-ring: #0033ff;
 }
 
 /**
- * Mode sombre — midnight + teal #053F56 + accents bleu glacier
+ * Mode sombre — tout le fond #0b0b0b ; séparations par bordures discrètes (#141414).
+ * Liens / états actifs : bleu #0033ff.
  */
 .dark {
-  --creo-blue-soft: #90d2f5;
-  --creo-blue: #21a5ec;
-  --creo-blue-deep: #1490d0;
-  --creo-teal: #053f56;
+  --creo-blue-soft: #6688ff;
+  --creo-blue: #0033ff;
+  --creo-blue-deep: #002bdb;
+  --creo-teal: #0b0b0b;
 
-  --creo-purple: #90d2f5;
-  --creo-purple-light: #b8e6fc;
-  --creo-purple-pale: #0c2836;
-  --creo-purple-dark: #21a5ec;
+  --creo-purple: #0033ff;
+  --creo-purple-light: #2244ff;
+  --creo-purple-pale: rgba(0, 51, 255, 0.14);
+  --creo-purple-dark: #002bdb;
 
-  /* Fond page (canvas) vs surfaces (sidebar, cartes) */
-  --creo-gray-50: #030910;
-  --creo-white: #051a24;
-  --creo-gray-100: #061f2a;
-  --creo-gray-200: #0c2f3f;
-  --creo-gray-300: #144a5e;
-  --creo-gray-400: #5a8aa0;
-  --creo-gray-500: #8eb4c8;
-  --creo-gray-700: #c5dde8;
-  --creo-gray-900: #f2f3f7;
-  --creo-black: #f2f3f7;
+  /* Fonds : même noir partout (shell, sidebar, cartes, zones muted) */
+  --creo-gray-50: #0b0b0b;
+  --creo-white: #0b0b0b;
+  --creo-gray-100: #0b0b0b;
+  --creo-gray-200: #141414;
+  --creo-gray-300: #1f1f1f;
+  --creo-gray-400: #737373;
+  --creo-gray-500: #a3a3a3;
+  --creo-gray-700: #d4d4d4;
+  --creo-gray-900: #ffffff;
+  --creo-black: #ffffff;
 
-  --creo-success: #34d399;
-  --creo-success-pale: #064e3b;
-  --creo-warning: #fbbf24;
+  --creo-success: #4ade80;
+  --creo-success-pale: #14532d;
+  --creo-warning: #facc15;
   --creo-warning-pale: #422006;
-  --creo-danger: #fb7185;
-  --creo-danger-pale: #4c0519;
-  --creo-info: #38bdf8;
-  --creo-info-pale: #0c2836;
+  --creo-danger: #f87171;
+  --creo-danger-pale: #450a0a;
+  --creo-info: #6688ff;
+  --creo-info-pale: rgba(0, 51, 255, 0.12);
 
-  --creo-shadow-elevated:
-    0 4px 24px rgb(0 0 0 / 0.45), 0 2px 8px rgb(0 0 0 / 0.3);
-  --creo-shadow-card-hover: 0 4px 20px rgb(0 0 0 / 0.35);
-  --creo-shadow-modal:
-    0 12px 40px rgb(0 0 0 / 0.55), 0 4px 12px rgb(0 0 0 / 0.35);
+  --creo-shadow-elevated: 0 4px 24px rgb(0 0 0 / 0.5);
+  --creo-shadow-card-hover: 0 2px 16px rgb(0 0 0 / 0.4);
+  --creo-shadow-modal: 0 12px 40px rgb(0 0 0 / 0.6);
 
-  --creo-ring-brand: rgb(144 210 245 / 0.28);
+  --creo-ring-brand: rgb(0 51 255 / 0.35);
   --creo-ring-purple: var(--creo-ring-brand);
 
-  --background: #030910;
-  --foreground: #f2f3f7;
-  --card: #06202c;
-  --card-foreground: #f2f3f7;
-  --popover: #073445;
-  --popover-foreground: #f2f3f7;
-  --primary: #21a5ec;
-  --primary-foreground: #030910;
-  --secondary: #053f56;
-  --secondary-foreground: #f2f3f7;
-  --muted: #0c2f3f;
-  --muted-foreground: #8eb4c8;
-  --accent: #0c3444;
-  --accent-foreground: #90d2f5;
-  --destructive: #fb7185;
-  --border: rgb(144 210 245 / 0.12);
-  --input: rgb(144 210 245 / 0.14);
-  --ring: #21a5ec;
+  --background: #0b0b0b;
+  --foreground: #ffffff;
+  --card: #0b0b0b;
+  --card-foreground: #ffffff;
+  --popover: #0b0b0b;
+  --popover-foreground: #ffffff;
+  --primary: #0033ff;
+  --primary-foreground: #ffffff;
+  --secondary: #0b0b0b;
+  --secondary-foreground: #ffffff;
+  --muted: #0b0b0b;
+  --muted-foreground: #a3a3a3;
+  --accent: rgba(0, 51, 255, 0.12);
+  --accent-foreground: #ffffff;
+  --destructive: #f87171;
+  --border: #141414;
+  --input: #141414;
+  --ring: #0033ff;
 
-  --chart-1: #21a5ec;
-  --chart-2: #90d2f5;
-  --chart-3: #053f56;
-  --chart-4: #f2f3f7;
-  --chart-5: #5a8aa0;
+  --chart-1: #0033ff;
+  --chart-2: #6688ff;
+  --chart-3: #525252;
+  --chart-4: #ffffff;
+  --chart-5: #737373;
 
-  --sidebar: #04151d;
-  --sidebar-foreground: #f2f3f7;
-  --sidebar-primary: #21a5ec;
-  --sidebar-primary-foreground: #030910;
-  --sidebar-accent: #0c2836;
-  --sidebar-accent-foreground: #90d2f5;
-  --sidebar-border: rgb(144 210 245 / 0.1);
-  --sidebar-ring: #21a5ec;
+  --sidebar: #0b0b0b;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #0033ff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: rgba(0, 51, 255, 0.12);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #141414;
+  --sidebar-ring: #0033ff;
 }

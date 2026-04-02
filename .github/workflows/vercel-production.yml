@@ -1,0 +1,46 @@
+# Déploiement production à chaque push sur `main`.
+# Secrets GitHub (Settings → Secrets → Actions) :
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# (Token : Vercel → Settings → Tokens ; org/project : fichier .vercel/project.json après `vercel link`)
+#
+# Si le dépôt est déjà connecté dans Vercel (Import Git) et que les déploiements auto marchent,
+# ce workflow peut déclencher un second build : garde une seule des deux méthodes.
+
+name: Deploy Vercel Production
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: vercel-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel env (production)
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build (Vercel)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy prebuilt to production
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}

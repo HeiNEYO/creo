@@ -15,7 +15,7 @@ const Card = React.forwardRef<
       "rounded-creo-lg border border-creo-gray-200 bg-creo-white p-5 text-creo-black shadow-none sm:p-6",
       "dark:border-border dark:bg-card dark:text-card-foreground",
       interactive &&
-        "cursor-pointer transition-all duration-200 hover:border-creo-gray-300 hover:shadow-creo-card",
+        "cursor-pointer transition-all duration-200 hover:border-creo-gray-300 hover:shadow-creo-card dark:hover:border-white/12",
       className
     )}
     {...props}
