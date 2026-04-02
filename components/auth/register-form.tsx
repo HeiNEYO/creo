@@ -1,40 +1,93 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useState } from "react";
 
-import { signUpAction } from "@/lib/auth/actions";
-import {
-  emptyState,
-  type AuthActionState,
-} from "@/lib/auth/form-state";
-import { FormSubmit } from "@/components/auth/form-submit";
+import { ensureDefaultWorkspaceAction } from "@/lib/auth/actions";
+import { signUpSchema } from "@/lib/auth/validation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function FormMessage({ state }: { state: AuthActionState }) {
-  if (state.error) {
-    return (
-      <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-        {state.error}
-      </p>
-    );
-  }
-  if (state.success) {
-    return (
-      <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
-        {state.success}
-      </p>
-    );
-  }
-  return null;
-}
-
 export function RegisterForm() {
-  const [state, formAction] = useFormState(signUpAction, emptyState);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setPending(true);
+
+    const formData = new FormData(e.currentTarget);
+    const rawName = formData.get("fullName");
+    const parsed = signUpSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+      fullName:
+        typeof rawName === "string" && rawName.trim() !== ""
+          ? rawName
+          : undefined,
+    });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Données invalides.");
+      setPending(false);
+      return;
+    }
+
+    const supabase = createClient();
+    const { data, error: authError } = await supabase.auth.signUp({
+      email: parsed.data.email,
+      password: parsed.data.password,
+      options: {
+        data: {
+          full_name: parsed.data.fullName ?? "",
+        },
+      },
+    });
+
+    if (authError) {
+      setError(authError.message);
+      setPending(false);
+      return;
+    }
+
+    if (data.session && data.user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        setError("Session non établie. Réessaie.");
+        setPending(false);
+        return;
+      }
+      const workspace = await ensureDefaultWorkspaceAction();
+      if (workspace.error) {
+        setError(workspace.error);
+        setPending(false);
+        return;
+      }
+      window.location.assign("/dashboard");
+      return;
+    }
+
+    setSuccess(
+      "Compte créé. Si la confirmation par email est activée, vérifie ta boîte de réception pour te connecter."
+    );
+    setPending(false);
+  }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      <FormMessage state={state} />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {error ? (
+        <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
+          {success}
+        </p>
+      ) : null}
       <div className="space-y-2">
         <Label htmlFor="fullName">Nom (optionnel)</Label>
         <Input
@@ -68,7 +121,9 @@ export function RegisterForm() {
         />
         <p className="text-xs text-muted-foreground">Au moins 8 caractères.</p>
       </div>
-      <FormSubmit label="Créer mon compte" pendingLabel="Création…" />
+      <Button type="submit" disabled={pending}>
+        {pending ? "Création…" : "Créer mon compte"}
+      </Button>
     </form>
   );
 }

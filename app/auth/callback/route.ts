@@ -7,27 +7,33 @@ import { ensureDefaultWorkspace } from "@/lib/workspaces/ensure-default";
 
 /**
  * Échange le code PKCE (magic link, recovery, OAuth) contre une session cookie.
+ * Les Set-Cookie doivent aller sur la NextResponse de redirection (pas seulement cookieStore).
  */
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") ?? "/dashboard";
+  const nextParam = requestUrl.searchParams.get("next") ?? "/dashboard";
+  const safeNext = nextParam.startsWith("/") ? nextParam : "/dashboard";
+  const origin = requestUrl.origin;
 
   if (!code) {
-    return NextResponse.redirect(
-      `${requestUrl.origin}/login?error=auth_code_manquant`
-    );
+    return NextResponse.redirect(`${origin}/login?error=auth_code_manquant`);
   }
 
   const config = getSupabasePublicEnv();
   if (!config) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/login?error=${encodeURIComponent("configuration_supabase")}`
+      `${origin}/login?error=${encodeURIComponent("configuration_supabase")}`
     );
   }
 
-  const cookieStore = cookies();
   const { url, anonKey } = config;
+  const cookieStore = cookies();
+
+  const redirectToApp = () =>
+    NextResponse.redirect(`${origin}${safeNext}`);
+
+  let response = redirectToApp();
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {
@@ -35,13 +41,10 @@ export async function GET(request: Request) {
         return cookieStore.getAll();
       },
       setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        } catch {
-          /* set depuis un contexte read-only */
-        }
+        response = redirectToApp();
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
       },
     },
   });
@@ -50,7 +53,7 @@ export async function GET(request: Request) {
 
   if (error) {
     return NextResponse.redirect(
-      `${requestUrl.origin}/login?error=${encodeURIComponent(error.message)}`
+      `${origin}/login?error=${encodeURIComponent(error.message)}`
     );
   }
 
@@ -60,12 +63,11 @@ export async function GET(request: Request) {
 
   if (user) {
     try {
-      await ensureDefaultWorkspace(supabase, user);
+      await ensureDefaultWorkspace(supabase);
     } catch {
       /* la page dashboard pourra réessayer ou afficher une erreur */
     }
   }
 
-  const safeNext = next.startsWith("/") ? next : "/dashboard";
-  return NextResponse.redirect(`${requestUrl.origin}${safeNext}`);
+  return response;
 }

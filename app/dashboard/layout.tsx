@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { signOutAction } from "@/lib/auth/actions";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { createClient } from "@/lib/supabase/server";
-import { Button } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -31,11 +30,7 @@ export default async function DashboardLayout({
           <span className="max-w-[200px] truncate text-sm text-muted-foreground">
             {user.email}
           </span>
-          <form action={signOutAction}>
-            <Button type="submit" variant="outline" size="sm">
-              Déconnexion
-            </Button>
-          </form>
+          <SignOutButton />
         </div>
       </header>
       <main className="p-6">{children}</main>

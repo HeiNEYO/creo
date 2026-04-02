@@ -1,33 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useFormState } from "react-dom";
+import { useState } from "react";
 
-import { signInAction } from "@/lib/auth/actions";
-import {
-  emptyState,
-  type AuthActionState,
-} from "@/lib/auth/form-state";
-import { FormSubmit } from "@/components/auth/form-submit";
+import { ensureDefaultWorkspaceAction } from "@/lib/auth/actions";
+import { signInSchema } from "@/lib/auth/validation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function FormMessage({ state }: { state: AuthActionState }) {
-  if (state.error) {
-    return (
-      <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
-        {state.error}
-      </p>
-    );
+function safeInternalRedirect(raw: string | undefined): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) {
+    return "/dashboard";
   }
-  if (state.success) {
-    return (
-      <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-400">
-        {state.success}
-      </p>
-    );
-  }
-  return null;
+  return raw;
 }
 
 type LoginFormProps = {
@@ -35,14 +22,59 @@ type LoginFormProps = {
 };
 
 export function LoginForm({ redirectTo }: LoginFormProps) {
-  const [state, formAction] = useFormState(signInAction, emptyState);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const target = safeInternalRedirect(redirectTo);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError(null);
+    setPending(true);
+    const formData = new FormData(e.currentTarget);
+    const parsed = signInSchema.safeParse({
+      email: formData.get("email"),
+      password: formData.get("password"),
+    });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? "Données invalides.");
+      setPending(false);
+      return;
+    }
+
+    const supabase = createClient();
+    const { error: authError } = await supabase.auth.signInWithPassword(
+      parsed.data
+    );
+    if (authError) {
+      setError(authError.message);
+      setPending(false);
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      setError("Session non établie. Réessaie.");
+      setPending(false);
+      return;
+    }
+
+    const workspace = await ensureDefaultWorkspaceAction();
+    if (workspace.error) {
+      setError(workspace.error);
+      setPending(false);
+      return;
+    }
+
+    window.location.assign(target);
+  }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
-      {redirectTo ? (
-        <input type="hidden" name="redirect" value={redirectTo} />
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {error ? (
+        <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {error}
+        </p>
       ) : null}
-      <FormMessage state={state} />
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -72,7 +104,9 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
           required
         />
       </div>
-      <FormSubmit label="Se connecter" />
+      <Button type="submit" disabled={pending}>
+        {pending ? "Connexion…" : "Se connecter"}
+      </Button>
     </form>
   );
 }

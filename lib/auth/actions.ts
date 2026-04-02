@@ -1,111 +1,28 @@
 "use server";
 
-import { redirect } from "next/navigation";
-
 import { createClient } from "@/lib/supabase/server";
 import type { AuthActionState } from "@/lib/auth/form-state";
-import { forgotPasswordSchema, signInSchema, signUpSchema } from "@/lib/auth/validation";
+import { forgotPasswordSchema } from "@/lib/auth/validation";
 import { ensureDefaultWorkspace } from "@/lib/workspaces/ensure-default";
 
-function safeInternalPath(raw: FormDataEntryValue | null): string {
-  if (typeof raw !== "string" || raw.length === 0) {
-    return "/dashboard";
-  }
-  if (!raw.startsWith("/") || raw.startsWith("//")) {
-    return "/dashboard";
-  }
-  return raw;
-}
-
-export async function signInAction(
-  _prev: AuthActionState,
-  formData: FormData
-): Promise<AuthActionState> {
-  const parsed = signInSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-  });
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return { error: first?.message ?? "Données invalides.", success: null };
-  }
-
+/** Appelé après connexion/inscription côté navigateur (cookies de session déjà posés). */
+export async function ensureDefaultWorkspaceAction(): Promise<{
+  error: string | null;
+}> {
   const supabase = createClient();
-  const { error } = await supabase.auth.signInWithPassword({
-    email: parsed.data.email,
-    password: parsed.data.password,
-  });
-
-  if (error) {
-    return { error: error.message, success: null };
-  }
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (user) {
-    try {
-      await ensureDefaultWorkspace(supabase, user);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Erreur workspace.";
-      return { error: message, success: null };
-    }
+  if (!user) {
+    return { error: "Session introuvable. Réessaie dans un instant." };
   }
-
-  redirect(safeInternalPath(formData.get("redirect")));
-}
-
-export async function signUpAction(
-  _prev: AuthActionState,
-  formData: FormData
-): Promise<AuthActionState> {
-  const parsed = signUpSchema.safeParse({
-    email: formData.get("email"),
-    password: formData.get("password"),
-    fullName: formData.get("fullName") || undefined,
-  });
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    return { error: first?.message ?? "Données invalides.", success: null };
+  try {
+    await ensureDefaultWorkspace(supabase);
+    return { error: null };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Erreur workspace.";
+    return { error: message };
   }
-
-  const supabase = createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      data: {
-        full_name: parsed.data.fullName ?? "",
-      },
-    },
-  });
-
-  if (error) {
-    return { error: error.message, success: null };
-  }
-
-  if (data.session && data.user) {
-    try {
-      await ensureDefaultWorkspace(supabase, data.user);
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Erreur workspace.";
-      return { error: message, success: null };
-    }
-    redirect("/dashboard");
-  }
-
-  return {
-    error: null,
-    success:
-      "Compte créé. Si la confirmation par email est activée, vérifie ta boîte de réception pour te connecter.",
-  };
-}
-
-export async function signOutAction(): Promise<void> {
-  const supabase = createClient();
-  await supabase.auth.signOut();
-  redirect("/login");
 }
 
 export async function forgotPasswordAction(
@@ -117,7 +34,11 @@ export async function forgotPasswordAction(
   });
   if (!parsed.success) {
     const first = parsed.error.issues[0];
-    return { error: first?.message ?? "Données invalides.", success: null };
+    return {
+      error: first?.message ?? "Données invalides.",
+      success: null,
+      redirectTo: null,
+    };
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -125,6 +46,7 @@ export async function forgotPasswordAction(
     return {
       error: "NEXT_PUBLIC_APP_URL doit être défini pour la réinitialisation.",
       success: null,
+      redirectTo: null,
     };
   }
 
@@ -137,12 +59,13 @@ export async function forgotPasswordAction(
   );
 
   if (error) {
-    return { error: error.message, success: null };
+    return { error: error.message, success: null, redirectTo: null };
   }
 
   return {
     error: null,
     success: "Si un compte existe pour cet email, tu recevras un lien de réinitialisation.",
+    redirectTo: null,
   };
 }
 
@@ -155,7 +78,11 @@ export async function magicLinkAction(
   });
   if (!parsed.success) {
     const first = parsed.error.issues[0];
-    return { error: first?.message ?? "Données invalides.", success: null };
+    return {
+      error: first?.message ?? "Données invalides.",
+      success: null,
+      redirectTo: null,
+    };
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -163,6 +90,7 @@ export async function magicLinkAction(
     return {
       error: "NEXT_PUBLIC_APP_URL doit être défini pour le lien magique.",
       success: null,
+      redirectTo: null,
     };
   }
 
@@ -175,11 +103,12 @@ export async function magicLinkAction(
   });
 
   if (error) {
-    return { error: error.message, success: null };
+    return { error: error.message, success: null, redirectTo: null };
   }
 
   return {
     error: null,
     success: "Vérifie ta boîte mail : un lien de connexion t’y a été envoyé.",
+    redirectTo: null,
   };
 }
