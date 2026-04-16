@@ -1,9 +1,12 @@
-# Déploiement production via CLI (en plus ou à la place du déploiement Git natif Vercel).
+# Déploiement production Vercel à chaque push sur `main`.
 #
-# Activation : GitHub → Settings → Variables → Actions → VERCEL_CI_ENABLED = true
-# Secrets : VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# Prérequis (GitHub du repo → Settings → Secrets and variables → Actions) :
+#   VERCEL_TOKEN        — Vercel → Account Settings → Tokens
+#   VERCEL_ORG_ID       — ex. `team_...` (dashboard équipe ou `.vercel/project.json`)
+#   VERCEL_PROJECT_ID   — ex. `prj_...` (onglet du projet Vercel → Settings → General)
 #
-# Si cette variable n’est pas à true, le job est ignoré (pas d’échec rouge à chaque push).
+# Si le même repo est déjà relié dans Vercel (Git → Production Branch), Vercel déploie
+# aussi tout seul : dans ce cas, supprime ce fichier pour éviter deux déploiements par push.
 
 name: Deploy Vercel Production
 
@@ -19,13 +22,23 @@ concurrency:
 
 jobs:
   deploy:
-    if: ${{ vars.VERCEL_CI_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     env:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Vérifier secrets Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ] || [ -z "$VERCEL_ORG_ID" ] || [ -z "$VERCEL_PROJECT_ID" ]; then
+            echo "::error::Secrets Actions manquants. Ajoute VERCEL_TOKEN, VERCEL_ORG_ID et VERCEL_PROJECT_ID (Settings → Secrets and variables → Actions)."
+            exit 1
+          fi
 
       - uses: actions/setup-node@v4
         with:
