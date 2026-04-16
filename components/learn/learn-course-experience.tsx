@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 import { CourseThumbnail } from "@/components/dashboard/courses/course-thumbnail";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import type { CourseLessonDTO, CourseStructureDTO } from "@/lib/courses/types";
 import { cn } from "@/lib/utils";
 
@@ -115,12 +115,15 @@ function LessonContent({ lesson }: { lesson: CourseLessonDTO }) {
     return (
       <div className="space-y-3">
         <div className="flex aspect-video max-h-[min(60vh,520px)] items-center justify-center rounded-xl bg-zinc-950">
-          <Button type="button" variant="secondary" className="gap-2" asChild>
-            <a href={url} target="_blank" rel="noopener noreferrer">
-              <Play className="size-5 fill-current" />
-              Ouvrir la vidéo
-            </a>
-          </Button>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={cn(buttonVariants({ variant: "secondary" }), "gap-2")}
+          >
+            <Play className="size-5 fill-current" />
+            Ouvrir la vidéo
+          </a>
         </div>
         <a
           href={url}
@@ -157,12 +160,15 @@ function LessonContent({ lesson }: { lesson: CourseLessonDTO }) {
   /* pdf */
   return (
     <div className="space-y-3">
-      <Button type="button" variant="outline" className="gap-2" asChild>
-        <a href={url} target="_blank" rel="noopener noreferrer">
-          <FileText className="size-4" />
-          Ouvrir le PDF
-        </a>
-      </Button>
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+      >
+        <FileText className="size-4" />
+        Ouvrir le PDF
+      </a>
     </div>
   );
 }
@@ -308,12 +314,13 @@ export function LearnCourseExperience({
     <div className="flex min-h-[calc(100vh-57px)] flex-col bg-[var(--creo-dashboard-canvas)] dark:bg-background">
       <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-creo-gray-200 bg-white/95 px-3 backdrop-blur-sm dark:border-border dark:bg-card/95 md:px-5">
         {variant === "preview" ? (
-          <Button type="button" size="sm" variant="outline" className="gap-1.5" asChild>
-            <Link href={backHref}>
-              <ArrowLeft className="size-4" />
-              Éditeur
-            </Link>
-          </Button>
+          <Link
+            href={backHref}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+          >
+            <ArrowLeft className="size-4" />
+            Éditeur
+          </Link>
         ) : (
           <Link
             href="/dashboard"

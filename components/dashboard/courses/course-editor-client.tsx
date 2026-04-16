@@ -778,19 +778,23 @@ export function CourseEditorClient({
               URL dans l’onglet dédié — prévisualise le parcours élève à tout moment.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
-              <Button type="button" size="sm" variant="outline" className="gap-1.5" asChild>
-                <Link href={`/dashboard/courses/${course.id}/preview`}>
-                  <Eye className="size-3.5" />
-                  Aperçu élève
-                </Link>
-              </Button>
+              <Link
+                href={`/dashboard/courses/${course.id}/preview`}
+                className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
+              >
+                <Eye className="size-3.5" />
+                Aperçu élève
+              </Link>
               {publicLearnHref ? (
-                <Button type="button" size="sm" variant="secondary" className="gap-1.5" asChild>
-                  <a href={publicLearnHref} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="size-3.5" />
-                    Page publique
-                  </a>
-                </Button>
+                <a
+                  href={publicLearnHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "gap-1.5")}
+                >
+                  <ExternalLink className="size-3.5" />
+                  Page publique
+                </a>
               ) : null}
             </div>
           </div>
