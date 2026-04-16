@@ -1,5 +1,5 @@
-import { DashboardTableSkeleton } from "@/components/dashboard/dashboard-page-skeleton";
+import { CoursesDashboardSkeleton } from "@/components/dashboard/dashboard-page-skeleton";
 
 export default function CoursesLoading() {
-  return <DashboardTableSkeleton rows={5} />;
+  return <CoursesDashboardSkeleton rows={4} />;
 }

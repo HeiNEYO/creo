@@ -2,13 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 
+import { makeUniqueCourseSlug } from "@/lib/courses/slug";
 import { readAuthUser } from "@/lib/supabase/read-auth-user";
 import { createClient } from "@/lib/supabase/server";
 import { getFirstWorkspaceIdForUser } from "@/lib/workspaces/get-first-workspace-id";
 
-function revalidateCourse(courseId: string) {
+function revalidateCourse(courseId: string, learnSlug?: string | null) {
   revalidatePath("/dashboard/courses");
   revalidatePath(`/dashboard/courses/${courseId}`);
+  revalidatePath(`/dashboard/courses/${courseId}/preview`);
+  if (learnSlug?.trim()) {
+    revalidatePath(`/learn/${learnSlug.trim()}`);
+  }
 }
 
 export async function updateCourseServer(input: {
@@ -20,6 +25,8 @@ export async function updateCourseServer(input: {
   currency?: string;
   status?: "draft" | "published";
   access_type?: "paid" | "free" | "members_only";
+  slug?: string | null;
+  compare_at_price?: number | null;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
   const user = await readAuthUser(supabase);
@@ -58,10 +65,34 @@ export async function updateCourseServer(input: {
   ) {
     patch.access_type = input.access_type;
   }
+  if (input.slug !== undefined) {
+    const s = input.slug?.trim();
+    patch.slug = s && s.length > 0 ? s : null;
+  }
+  if (input.compare_at_price !== undefined) {
+    const c = input.compare_at_price;
+    if (c === null) {
+      patch.compare_at_price = null;
+    } else if (typeof c === "number" && Number.isFinite(c) && c >= 0) {
+      patch.compare_at_price = c;
+    } else {
+      return { ok: false, error: "Prix barré invalide." };
+    }
+  }
 
   if (Object.keys(patch).length === 0) {
     return { ok: true };
   }
+
+  const { data: prevRow } = await supabase
+    .from("courses")
+    .select("slug")
+    .eq("id", input.courseId)
+    .maybeSingle();
+  const prevSlug =
+    prevRow && typeof (prevRow as { slug?: unknown }).slug === "string"
+      ? (prevRow as { slug: string }).slug
+      : null;
 
   const { error } = await supabase
     .from("courses")
@@ -69,10 +100,32 @@ export async function updateCourseServer(input: {
     .eq("id", input.courseId);
 
   if (error) {
+    if (
+      error.message.includes("courses_workspace_slug_lower_unique") ||
+      error.message.includes("duplicate key")
+    ) {
+      return {
+        ok: false,
+        error: "Ce slug est déjà utilisé pour une autre formation du workspace.",
+      };
+    }
     return { ok: false, error: error.message };
   }
 
-  revalidateCourse(input.courseId);
+  const { data: nextRow } = await supabase
+    .from("courses")
+    .select("slug")
+    .eq("id", input.courseId)
+    .maybeSingle();
+  const nextSlug =
+    nextRow && typeof (nextRow as { slug?: unknown }).slug === "string"
+      ? (nextRow as { slug: string }).slug
+      : null;
+
+  revalidateCourse(input.courseId, nextSlug);
+  if (prevSlug && prevSlug !== nextSlug) {
+    revalidatePath(`/learn/${prevSlug}`);
+  }
   return { ok: true };
 }
 
@@ -338,6 +391,8 @@ export async function createCourseServer(input: {
       ? input.access_type
       : "paid";
 
+  const slug = makeUniqueCourseSlug(title);
+
   const { data, error } = await supabase
     .from("courses")
     .insert({
@@ -349,15 +404,21 @@ export async function createCourseServer(input: {
       currency,
       access_type: accessType,
       status: "draft",
+      slug,
     })
-    .select("id")
+    .select("id, slug")
     .single();
 
   if (error) {
     return { ok: false, error: error.message };
   }
 
-  revalidateCourse(data.id);
+  revalidateCourse(
+    data.id,
+    typeof (data as { slug?: unknown }).slug === "string"
+      ? (data as { slug: string }).slug
+      : null
+  );
   return { ok: true, id: data.id };
 }
 

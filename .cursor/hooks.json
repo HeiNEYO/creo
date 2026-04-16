@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "hooks": {
+    "stop": [
+      {
+        "command": "node .cursor/hooks/deploy-on-stop.mjs",
+        "timeout": 900,
+        "failClosed": false
+      }
+    ]
+  }
+}

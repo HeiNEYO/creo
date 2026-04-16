@@ -86,15 +86,9 @@
   --creo-dashboard-chrome: #ffffff;
   --creo-dashboard-canvas: #fcfcfc;
   --creo-surface-header: var(--creo-dashboard-header);
-  /* Ombre carte : douce, flou étalé — alphas −20 % vs précédent */
-  --creo-shadow-card-rest:
-    0 1px 2px rgba(15, 23, 42, 0.016),
-    0 6px 20px rgba(15, 23, 42, 0.032),
-    0 20px 44px rgba(15, 23, 42, 0.04);
-  --creo-shadow-card-hover-light:
-    0 2px 6px rgba(15, 23, 42, 0.024),
-    0 10px 28px rgba(15, 23, 42, 0.044),
-    0 28px 56px rgba(15, 23, 42, 0.048);
+  /* Ombre carte : quasi imperceptible (une seule couche, pas d’effet « lift » au survol). */
+  --creo-shadow-card-rest: 0 1px 2px rgba(15, 23, 42, 0.028);
+  --creo-shadow-card-hover-light: var(--creo-shadow-card-rest);
 
   /** Tendances cockpit / KPI (vert / rouge sobres, lisibles sur blanc) */
   --creo-dashboard-trend-positive: #0d9488;
@@ -104,9 +98,8 @@
   /** Rayons cartes zone cockpit (type admin e-commerce) */
   --creo-dashboard-card-radius: 18px;
 
-  --creo-shadow-elevated:
-    0 4px 14px rgb(15 23 42 / 0.032), 0 2px 6px rgb(15 23 42 / 0.024);
-  --creo-shadow-card-hover: 0 8px 24px rgb(15 23 42 / 0.04);
+  --creo-shadow-elevated: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --creo-shadow-card-hover: var(--creo-shadow-card-rest);
   --creo-shadow-modal:
     0 8px 24px rgb(0 0 0 / 0.12), 0 2px 8px rgb(0 0 0 / 0.06);
 

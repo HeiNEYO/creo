@@ -11,7 +11,7 @@ export const INTEGRATION_IDS = [
   "calendly",
   "zoom",
   "slack",
-  "gtm",
+  "hyros",
   "iclosed",
 ] as const;
 
@@ -123,12 +123,12 @@ export const integrationCatalog: IntegrationCatalogEntry[] = [
     helpHref: HELP_BASE,
   },
   {
-    id: "gtm",
-    label: "Google Tag Manager",
+    id: "hyros",
+    label: "Hyros",
     shortDescription:
-      "Déploie GTM sur tes pages publiques avec contrôle du consentement (bientôt).",
+      "Attribution publicitaire et suivi des conversions avec Hyros (bientôt).",
     detailDescription:
-      "Centralise tags et déclencheurs marketing tout en restant aligné avec le bandeau cookies.",
+      "Connecte Hyros pour enrichir le tracking et l’attribution sur tes campagnes, en complément de tes pages CRÉO.",
     requiresPaidPlan: false,
     comingSoon: true,
     helpHref: HELP_BASE,

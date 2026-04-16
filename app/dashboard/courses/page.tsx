@@ -48,9 +48,23 @@ async function CoursesPageContent() {
       const { data, error } = await supabase
         .from("courses")
         .select(
-          "id, title, description, thumbnail_url, price, currency, status, access_type"
+          `
+          id,
+          title,
+          description,
+          thumbnail_url,
+          price,
+          currency,
+          status,
+          access_type,
+          created_at,
+          course_modules (
+            course_lessons ( count )
+          )
+        `
         )
-        .eq("workspace_id", workspaceId);
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false });
 
       if (error) {
         queryError = error.message;
@@ -64,6 +78,26 @@ async function CoursesPageContent() {
                 : typeof rawPrice === "string"
                   ? parseFloat(rawPrice)
                   : Number(rawPrice);
+            const mods = Array.isArray(
+              (c as { course_modules?: unknown }).course_modules
+            )
+              ? (c as { course_modules: { course_lessons?: { count: number }[] }[] })
+                  .course_modules
+              : [];
+            const moduleCount = mods.length;
+            const lessonCount = mods.reduce((acc, m) => {
+              const row = m.course_lessons?.[0];
+              const n =
+                row && typeof row.count === "number" && Number.isFinite(row.count)
+                  ? row.count
+                  : 0;
+              return acc + n;
+            }, 0);
+            const createdRaw = (c as { created_at?: unknown }).created_at;
+            const createdAt =
+              typeof createdRaw === "string" && createdRaw
+                ? createdRaw
+                : new Date(0).toISOString();
             return {
               id: String(c.id),
               title: typeof c.title === "string" ? c.title : "",
@@ -83,9 +117,11 @@ async function CoursesPageContent() {
               status: typeof c.status === "string" ? c.status : "draft",
               access_type:
                 typeof c.access_type === "string" ? c.access_type : "paid",
+              created_at: createdAt,
+              moduleCount,
+              lessonCount,
             };
           }) ?? [];
-        courses.sort((a, b) => b.id.localeCompare(a.id));
       }
     } catch (e) {
       queryError =

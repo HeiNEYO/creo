@@ -16,7 +16,7 @@ export function IntegrationCardIcon({
    * padding minimal pour éviter l’effet « petit picto dans une grande boîte ».
    */
   const box =
-    "flex size-11 shrink-0 flex-col overflow-hidden rounded-xl border border-creo-gray-200/90 bg-white p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-white/[0.12] dark:bg-muted dark:shadow-none";
+    "flex size-11 shrink-0 flex-col overflow-hidden rounded-xl bg-white p-1 shadow-[var(--creo-shadow-card-rest)] dark:bg-muted dark:shadow-none";
 
   if (id === "webhook") {
     return (
@@ -53,7 +53,7 @@ export function IntegrationDetailTitleIcon({
     return (
       <div
         className={cn(
-          "flex size-14 shrink-0 flex-col overflow-hidden rounded-xl border border-creo-gray-200/90 bg-creo-gray-100 p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-white/[0.12] dark:bg-muted dark:shadow-none",
+          "flex size-14 shrink-0 flex-col overflow-hidden rounded-xl bg-creo-gray-100 p-1 shadow-[var(--creo-shadow-card-rest)] dark:bg-muted dark:shadow-none",
           className
         )}
         aria-hidden
@@ -68,7 +68,7 @@ export function IntegrationDetailTitleIcon({
   return (
     <div
       className={cn(
-        "flex size-14 shrink-0 flex-col overflow-hidden rounded-xl border border-creo-gray-200/90 bg-white p-1 shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:border-white/[0.12] dark:bg-muted dark:shadow-none",
+        "flex size-14 shrink-0 flex-col overflow-hidden rounded-xl bg-white p-1 shadow-[var(--creo-shadow-card-rest)] dark:bg-muted dark:shadow-none",
         className
       )}
       aria-hidden

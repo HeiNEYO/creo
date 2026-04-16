@@ -105,13 +105,11 @@ html {
     box-shadow: none;
   }
   .creo-dashboard-polaris [data-creo-card][data-interactive] {
-    transition:
-      border-color 0.15s ease,
-      box-shadow 0.15s ease;
+    transition: border-color 0.15s ease;
   }
   .creo-dashboard-polaris [data-creo-card][data-interactive]:hover {
     border-color: #c9cccf;
-    box-shadow: var(--creo-shadow-card-hover-light);
+    box-shadow: var(--creo-shadow-card-rest);
   }
   .dark .creo-dashboard-polaris [data-creo-card][data-interactive]:hover {
     border-color: rgba(255, 255, 255, 0.14);

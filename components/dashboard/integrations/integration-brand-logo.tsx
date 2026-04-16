@@ -8,12 +8,12 @@ const BRAND_SRC: Partial<Record<IntegrationCatalogId, string>> = {
   "meta-pixel": "/integrations/brands/meta.svg",
   /** Logos raster (fichiers locaux — évite hotlink fragile) */
   stripe: "/integrations/brands/stripe.png",
-  zapier: "/integrations/brands/zapier.svg",
-  "google-calendar": "/integrations/brands/googlecalendar.png",
+  zapier: "/integrations/brands/zapier.png",
+  "google-calendar": "/integrations/brands/googlecalendar.jpg",
   calendly: "/integrations/brands/calendly.svg",
-  zoom: "/integrations/brands/zoom.svg",
-  slack: "/integrations/brands/slack.png",
-  gtm: "/integrations/brands/googletagmanager.svg",
+  zoom: "/integrations/brands/zoom.jpg",
+  slack: "/integrations/brands/slack.jpg",
+  hyros: "/integrations/brands/hyros.webp",
   iclosed: "/integrations/brands/iclosed.png",
 };
 

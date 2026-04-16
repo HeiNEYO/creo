@@ -5,6 +5,14 @@ alwaysApply: true
 
 # Déploiement Vercel (CRÉO)
 
+## Pour toi (une seule chose à retenir — peu importe la langue)
+
+Tu n’as **pas** besoin de redemander le déploiement dans une autre langue : c’est **automatique** dès que l’une de ces conditions est vraie.
+
+1. **Git → Vercel (recommandé)** : dans [Vercel](https://vercel.com), projet CRÉO → **Connect Git** → branche production = `main`. Ensuite, **`git push origin main`** suffit : Vercel build et déploie **sans** que tu écrives quoi que ce soit dans le chat.
+2. **GitHub Actions** : secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` sur le dépôt → le workflow [`.github/workflows/vercel-production.yml`](./.github/workflows/vercel-production.yml) tourne à **chaque push sur `main`**. (Si (1) est déjà actif sur le **même** repo, désactive l’un des deux pour éviter **deux** déploiements par push.)
+3. **Fin de tour d’agent dans Cursor** : hook projet `.cursor/hooks.json` → après un échange agent, si `git status` n’est pas vide, exécution de `deploy.bat` (Windows) ou `npm run build && npm run deploy:vercel`. Vérifie que **Node**, **Git** et la **CLI Vercel** (login / `.vercel`) sont OK sur ta machine.
+
 ## Agent Cursor : déploiement automatique à chaque fois
 
 Dès que la session modifie des fichiers qui impactent l’app Next.js (UI, routes, `lib/`, config, assets servis par l’app, etc.), **à la fin du travail** (build OK) : **lancer le déploiement production sans attendre** une consigne explicite du type « deploy » ou « deploy.bat ».

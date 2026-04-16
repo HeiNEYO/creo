@@ -43,8 +43,8 @@ function flowLabel(id: IntegrationCatalogId): string {
       return "Visioconférence";
     case "slack":
       return "Notifications";
-    case "gtm":
-      return "Tags & mesure";
+    case "hyros":
+      return "Attribution";
     case "iclosed":
       return "CRM iClosed";
     default:
@@ -101,7 +101,7 @@ function StripeFlowDiagram() {
         </div>
       </div>
       <ArrowDown />
-      <Box className="flex items-center justify-center py-2 text-sm">
+      <Box className="flex items-center justify-center border-0 py-2 text-sm shadow-none ring-0 dark:border-0">
         <Image
           src="/integrations/brands/stripe.png"
           alt=""
@@ -138,7 +138,7 @@ function PixelFlowDiagram() {
       <ArrowDown />
       <Box className="text-sm">Consentement cookies</Box>
       <ArrowDown />
-      <Box className="flex flex-col items-center gap-1.5 text-sm">
+      <Box className="flex flex-col items-center gap-1.5 border-0 text-sm shadow-none ring-0 dark:border-0">
         <span>Meta Pixel</span>
         <Image
           src="/integrations/brands/meta.svg"

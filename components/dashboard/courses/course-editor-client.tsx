@@ -4,15 +4,19 @@ import {
   ArrowLeft,
   BookOpen,
   ChevronDown,
+  ExternalLink,
+  Eye,
   FileText,
   GraduationCap,
   Headphones,
   Layers,
   Plus,
   Settings,
+  Sparkles,
   Trash2,
   Users,
   Video,
+  Wand2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -27,6 +31,7 @@ import {
   updateCourseModuleServer,
   updateCourseServer,
 } from "@/lib/courses/actions";
+import { makeUniqueCourseSlug } from "@/lib/courses/slug";
 import type { CourseLessonDTO, CourseStructureDTO } from "@/lib/courses/types";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -45,6 +50,8 @@ export type CourseEditorCourse = {
   currency: string;
   thumbnail_url: string | null;
   access_type: string;
+  slug: string | null;
+  compare_at_price: number | null;
 };
 
 const selectFieldClass =
@@ -85,7 +92,7 @@ function FormSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-3 rounded-creo-lg border border-creo-gray-100 bg-creo-gray-50/40 p-4 dark:border-border dark:bg-muted/20">
+    <div className="space-y-3 rounded-creo-lg border border-creo-gray-200/80 bg-white/90 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:border-border dark:bg-card/60">
       <div>
         <h3 className="text-creo-sm font-semibold text-creo-black dark:text-foreground">
           {title}
@@ -356,7 +363,11 @@ function CourseSettingsPanel({ course }: { course: CourseEditorCourse }) {
   const [title, setTitle] = useState(course.title);
   const [description, setDescription] = useState(course.description ?? "");
   const [thumbnailUrl, setThumbnailUrl] = useState(course.thumbnail_url ?? "");
+  const [slug, setSlug] = useState(course.slug ?? "");
   const [price, setPrice] = useState(String(course.price));
+  const [compareAtPrice, setCompareAtPrice] = useState(
+    course.compare_at_price != null ? String(course.compare_at_price) : ""
+  );
   const [currency, setCurrency] = useState((course.currency ?? "eur").toLowerCase());
   const [accessType, setAccessType] = useState<
     "paid" | "free" | "members_only"
@@ -370,7 +381,9 @@ function CourseSettingsPanel({ course }: { course: CourseEditorCourse }) {
     setTitle(course.title);
     setDescription(course.description ?? "");
     setThumbnailUrl(course.thumbnail_url ?? "");
+    setSlug(course.slug ?? "");
     setPrice(String(course.price));
+    setCompareAtPrice(course.compare_at_price != null ? String(course.compare_at_price) : "");
     setCurrency((course.currency ?? "eur").toLowerCase());
     setAccessType(
       course.access_type === "free" || course.access_type === "members_only"
@@ -386,6 +399,20 @@ function CourseSettingsPanel({ course }: { course: CourseEditorCourse }) {
       setError("Prix invalide.");
       return;
     }
+    const capRaw = compareAtPrice.trim().replace(",", ".");
+    let compareNum: number | null = null;
+    if (capRaw.length > 0) {
+      const c = parseFloat(capRaw);
+      if (Number.isNaN(c) || c < 0) {
+        setError("Prix barré invalide.");
+        return;
+      }
+      if (c <= p) {
+        setError("Le prix barré doit être supérieur au prix de vente pour afficher une réduction.");
+        return;
+      }
+      compareNum = c;
+    }
     startTransition(async () => {
       const res = await updateCourseServer({
         courseId: course.id,
@@ -395,6 +422,8 @@ function CourseSettingsPanel({ course }: { course: CourseEditorCourse }) {
         price: p,
         currency,
         access_type: accessType,
+        slug: slug.trim() || null,
+        compare_at_price: compareNum,
       });
       if (res.ok) {
         router.refresh();
@@ -419,8 +448,32 @@ function CourseSettingsPanel({ course }: { course: CourseEditorCourse }) {
     });
   }
 
+  const discountPct =
+    course.compare_at_price != null &&
+    course.compare_at_price > course.price &&
+    course.price >= 0
+      ? Math.round((1 - course.price / course.compare_at_price) * 100)
+      : null;
+
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-8">
+      <div className="rounded-creo-lg border border-dashed border-creo-purple/25 bg-[var(--creo-purple-pale)]/40 px-4 py-3 dark:border-creo-purple/30 dark:bg-accent/10">
+        <p className="flex items-start gap-2 text-creo-sm text-creo-gray-700 dark:text-foreground">
+          <Sparkles className="mt-0.5 size-4 shrink-0 text-creo-purple" />
+          <span>
+            Définis l’URL publique, le tarif et un éventuel prix barré : ils seront visibles sur la
+            page de vente et dans l’expérience élève. Utilise l’aperçu depuis l’en-tête pour
+            contrôler le rendu.
+          </span>
+        </p>
+        {discountPct != null ? (
+          <p className="mt-2 text-creo-xs text-creo-gray-600 dark:text-muted-foreground">
+            Réduction affichée actuellement : environ <strong>{discountPct} %</strong> par rapport au
+            prix barré.
+          </p>
+        ) : null}
+      </div>
+
       <FormSection
         title="Fiche formation"
         description="Titre, résumé et visuel utilisés sur la liste et la vitrine."
@@ -473,16 +526,62 @@ function CourseSettingsPanel({ course }: { course: CourseEditorCourse }) {
         </div>
       </FormSection>
 
-      <FormSection title="Tarif" description="Montant facturé lors de l’achat (si payant).">
+      <FormSection
+        title="URL et slug"
+        description="Segment d’URL pour /learn/… — unique dans ton espace. Laisse vide si tu n’as pas encore de lien public."
+      >
+        <div className="space-y-2">
+          <Label htmlFor="course-set-slug">Slug</Label>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Input
+              id="course-set-slug"
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="ma-formation"
+              className="font-mono text-creo-sm sm:flex-1"
+              spellCheck={false}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 gap-1.5"
+              onClick={() => setSlug(makeUniqueCourseSlug(title || course.title || "formation"))}
+            >
+              <Wand2 className="size-3.5" />
+              Générer
+            </Button>
+          </div>
+          <p className="text-creo-xs text-creo-gray-500">
+            Exemple : <span className="font-mono text-creo-gray-600">/learn/{slug.trim() || "…"}</span>
+          </p>
+        </div>
+      </FormSection>
+
+      <FormSection
+        title="Tarif et promotion"
+        description="Prix facturé et, optionnellement, un prix de référence barré (doit être supérieur au prix de vente)."
+      >
         <div className="flex flex-wrap gap-4">
           <div className="min-w-[120px] flex-1 space-y-2">
-            <Label htmlFor="course-set-price">Prix</Label>
+            <Label htmlFor="course-set-price">Prix de vente</Label>
             <Input
               id="course-set-price"
               type="text"
               inputMode="decimal"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
+            />
+          </div>
+          <div className="min-w-[120px] flex-1 space-y-2">
+            <Label htmlFor="course-set-compare">Prix barré (optionnel)</Label>
+            <Input
+              id="course-set-compare"
+              type="text"
+              inputMode="decimal"
+              value={compareAtPrice}
+              onChange={(e) => setCompareAtPrice(e.target.value)}
+              placeholder="ex. 199"
             />
           </div>
           <div className="w-full min-w-[100px] max-w-[140px] space-y-2">
@@ -634,10 +733,21 @@ export function CourseEditorClient({
     });
   };
 
+  const cur = (course.currency ?? "eur").toUpperCase();
   const priceLabel = new Intl.NumberFormat("fr-FR", {
     style: "currency",
-    currency: (course.currency ?? "eur").toUpperCase(),
+    currency: cur,
   }).format(Number(course.price));
+  const compareLabel =
+    course.compare_at_price != null && course.compare_at_price > Number(course.price)
+      ? new Intl.NumberFormat("fr-FR", { style: "currency", currency: cur }).format(
+          course.compare_at_price
+        )
+      : null;
+  const publicLearnHref =
+    course.status === "published" && course.slug?.trim()
+      ? `/learn/${course.slug.trim()}`
+      : null;
 
   return (
     <div className="pb-8">
@@ -664,9 +774,25 @@ export function CourseEditorClient({
               </Badge>
             </div>
             <p className="max-w-2xl text-creo-sm leading-relaxed text-[#616161] dark:text-creo-gray-500">
-              Structure le programme à gauche, rédige chaque leçon au centre. Les paramètres globaux
-              sont dans l’onglet dédié.
+              Structure le programme à gauche, rédige chaque leçon au centre. Paramètres, tarif et
+              URL dans l’onglet dédié — prévisualise le parcours élève à tout moment.
             </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <Button type="button" size="sm" variant="outline" className="gap-1.5" asChild>
+                <Link href={`/dashboard/courses/${course.id}/preview`}>
+                  <Eye className="size-3.5" />
+                  Aperçu élève
+                </Link>
+              </Button>
+              {publicLearnHref ? (
+                <Button type="button" size="sm" variant="secondary" className="gap-1.5" asChild>
+                  <a href={publicLearnHref} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="size-3.5" />
+                    Page publique
+                  </a>
+                </Button>
+              ) : null}
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-creo-gray-200 bg-white px-3 py-1.5 text-creo-xs font-medium text-creo-gray-700 dark:border-border dark:bg-background">
@@ -678,7 +804,16 @@ export function CourseEditorClient({
               {lessonsFlat.length} leçon{lessonsFlat.length !== 1 ? "s" : ""}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-creo-gray-200 bg-white px-3 py-1.5 text-creo-xs font-medium text-creo-gray-700 dark:border-border dark:bg-background">
-              {priceLabel}
+              {compareLabel ? (
+                <>
+                  <span className="text-creo-gray-400 line-through">{compareLabel}</span>
+                  <span className="text-creo-purple dark:text-[var(--creo-blue-readable)]">
+                    {priceLabel}
+                  </span>
+                </>
+              ) : (
+                priceLabel
+              )}
             </span>
           </div>
         </div>
@@ -850,14 +985,33 @@ export function CourseEditorClient({
             </h3>
             <dl className="mt-3 space-y-3 text-creo-sm">
               <div className="flex justify-between gap-4">
-                <dt className="text-creo-gray-500">Prix affiché</dt>
-                <dd className="font-medium text-creo-black dark:text-foreground">{priceLabel}</dd>
+                <dt className="text-creo-gray-500">Tarif</dt>
+                <dd className="text-right font-medium text-creo-black dark:text-foreground">
+                  {compareLabel ? (
+                    <span className="inline-flex flex-col items-end gap-0.5">
+                      <span className="text-creo-xs font-normal text-creo-gray-400 line-through">
+                        {compareLabel}
+                      </span>
+                      <span className="text-creo-purple dark:text-[var(--creo-blue-readable)]">
+                        {priceLabel}
+                      </span>
+                    </span>
+                  ) : (
+                    priceLabel
+                  )}
+                </dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-creo-gray-500">Accès</dt>
                 <dd className="font-medium text-creo-black dark:text-foreground">
                   {ACCESS_OPTIONS.find((o) => o.value === course.access_type)?.label ??
                     course.access_type}
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-creo-gray-500">Slug</dt>
+                <dd className="max-w-[55%] truncate font-mono text-creo-xs text-creo-black dark:text-foreground">
+                  {course.slug?.trim() ? course.slug.trim() : "—"}
                 </dd>
               </div>
             </dl>
@@ -867,11 +1021,11 @@ export function CourseEditorClient({
         {/* Contenu principal */}
         <main className="order-1 min-w-0 flex-1 lg:order-2">
           <div
-            className="sticky top-0 z-10 -mx-4 mb-6 border-b border-creo-gray-200 bg-[var(--creo-dashboard-canvas)] px-4 pb-0 pt-0 dark:border-border dark:bg-[var(--creo-surface-app)] md:-mx-6 md:px-6 lg:-mx-0 lg:px-0"
+            className="sticky top-0 z-10 -mx-4 mb-6 px-4 md:-mx-6 md:px-6 lg:-mx-0 lg:px-0"
             role="tablist"
             aria-label="Sections de l’éditeur"
           >
-            <div className="flex gap-1 overflow-x-auto pb-px">
+            <div className="flex gap-1 overflow-x-auto rounded-creo-lg border border-creo-gray-200/90 bg-white/90 p-1 shadow-sm dark:border-border dark:bg-card/80">
               {tabs.map(({ key, label, icon: Icon }) => (
                 <button
                   key={key}
@@ -880,13 +1034,13 @@ export function CourseEditorClient({
                   aria-selected={tab === key}
                   onClick={() => setTab(key)}
                   className={cn(
-                    "flex shrink-0 items-center gap-2 border-b-2 px-4 py-3 text-[15px] font-medium leading-[1.5] transition-colors",
+                    "flex shrink-0 items-center gap-2 rounded-creo-md px-3.5 py-2 text-creo-sm font-medium transition-colors",
                     tab === key
-                      ? "border-creo-purple text-creo-purple dark:text-[var(--creo-blue-readable)]"
-                      : "border-transparent text-creo-gray-500 hover:text-creo-gray-800 dark:hover:text-zinc-300"
+                      ? "bg-creo-purple text-white shadow-sm dark:bg-[var(--creo-blue)] dark:text-white"
+                      : "text-creo-gray-600 hover:bg-creo-gray-100 dark:text-muted-foreground dark:hover:bg-muted/60"
                   )}
                 >
-                  <Icon className="size-[18px] shrink-0 opacity-80" />
+                  <Icon className="size-4 shrink-0 opacity-90" />
                   {label}
                 </button>
               ))}

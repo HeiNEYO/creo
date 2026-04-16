@@ -139,7 +139,7 @@ export function EmailCrmHub({ stats }: Props) {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {sections.map(({ href, title, description, icon: Icon }) => (
           <Link key={href} href={href} prefetch>
-            <Card className="h-full p-5 transition-[box-shadow,background-color] hover:shadow-md dark:hover:bg-[var(--creo-surface-raised)]">
+            <Card className="h-full p-5 transition-[border-color,background-color] hover:border-creo-gray-300 dark:hover:border-white/15 dark:hover:bg-[var(--creo-surface-raised)]">
               <div className="flex gap-4">
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-creo-purple-pale dark:bg-creo-purple-pale/30">
                   <Icon className="size-5 text-creo-purple" aria-hidden />

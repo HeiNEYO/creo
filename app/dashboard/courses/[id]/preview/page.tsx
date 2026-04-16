@@ -1,8 +1,9 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { LearnCourseExperience } from "@/components/learn/learn-course-experience";
 import { loadCourseStructure } from "@/lib/courses/load-course-structure";
-import { createClient } from "@/lib/supabase/server";
+import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
+import { isUuid } from "@/lib/utils/uuid";
 
 export const dynamic = "force-dynamic";
 
@@ -44,15 +45,17 @@ function normalize(row: Record<string, unknown>) {
   };
 }
 
-export default async function LearnCoursePage({
-  params,
-}: {
-  params: { courseSlug: string };
-}) {
-  const supabase = createClient();
-  const slug = decodeURIComponent(params.courseSlug ?? "").trim();
-  if (!slug) {
+export default async function CoursePreviewPage({ params }: { params: { id: string } }) {
+  if (!isUuid(params.id)) {
     notFound();
+  }
+
+  const { supabase, user, workspaceId } = await getWorkspaceContext();
+  if (!user) {
+    redirect("/login");
+  }
+  if (!workspaceId) {
+    redirect("/dashboard/courses");
   }
 
   const { data, error } = await supabase
@@ -60,8 +63,8 @@ export default async function LearnCoursePage({
     .select(
       "id, title, description, thumbnail_url, price, currency, status, slug, compare_at_price, access_type"
     )
-    .eq("slug", slug)
-    .eq("status", "published")
+    .eq("id", params.id)
+    .eq("workspace_id", workspaceId)
     .maybeSingle();
 
   if (error || !data) {
@@ -71,5 +74,12 @@ export default async function LearnCoursePage({
   const course = normalize(data as Record<string, unknown>);
   const structure = await loadCourseStructure(supabase, course.id);
 
-  return <LearnCourseExperience variant="public" course={course} structure={structure} />;
+  return (
+    <LearnCourseExperience
+      variant="preview"
+      course={course}
+      structure={structure}
+      backHref={`/dashboard/courses/${params.id}`}
+    />
+  );
 }

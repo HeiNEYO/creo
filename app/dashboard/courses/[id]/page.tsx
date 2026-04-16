@@ -18,6 +18,8 @@ function normalizeCourseRow(course: {
   currency: unknown;
   thumbnail_url?: unknown;
   access_type?: unknown;
+  slug?: unknown;
+  compare_at_price?: unknown;
 }) {
   const raw = course.price;
   const priceNum =
@@ -26,6 +28,15 @@ function normalizeCourseRow(course: {
       : typeof raw === "string"
         ? parseFloat(raw)
         : Number(raw);
+  const cap = course.compare_at_price;
+  const compareNum =
+    cap == null
+      ? null
+      : typeof cap === "number"
+        ? cap
+        : typeof cap === "string"
+          ? parseFloat(cap)
+          : Number(cap);
   return {
     id: String(course.id),
     title: typeof course.title === "string" ? course.title : "",
@@ -45,6 +56,9 @@ function normalizeCourseRow(course: {
         : null,
     access_type:
       typeof course.access_type === "string" ? course.access_type : "paid",
+    slug: typeof course.slug === "string" && course.slug.trim() ? course.slug.trim() : null,
+    compare_at_price:
+      compareNum != null && Number.isFinite(compareNum) && compareNum >= 0 ? compareNum : null,
   };
 }
 
@@ -63,7 +77,9 @@ export default async function CourseEditorPage({ params }: PageProps) {
 
   const { data, error } = await supabase
     .from("courses")
-    .select("id, title, description, status, price, currency, thumbnail_url, access_type")
+    .select(
+      "id, title, description, status, price, currency, thumbnail_url, access_type, slug, compare_at_price"
+    )
     .eq("id", params.id)
     .eq("workspace_id", workspaceId)
     .maybeSingle();
