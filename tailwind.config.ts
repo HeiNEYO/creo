@@ -22,7 +22,7 @@ const config: Config = {
         /* Échelle CRÉO (ne remplace pas les text-* Tailwind par défaut) */
         "creo-xs": ["11px", { lineHeight: "1.4" }],
         "creo-sm": ["13px", { lineHeight: "1.5" }],
-        "creo-base": ["14px", { lineHeight: "1.6" }],
+        "creo-base": ["14px", { lineHeight: "20px" }],
         "creo-md": ["15px", { lineHeight: "1.6" }],
         "creo-lg": ["18px", { lineHeight: "1.5" }],
         "creo-xl": ["22px", { lineHeight: "1.4" }],
@@ -43,8 +43,8 @@ const config: Config = {
       },
       borderRadius: {
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        md: "max(0px, calc(var(--radius) - 2px))",
+        sm: "max(0px, calc(var(--radius) - 4px))",
         "creo-sm": "var(--creo-radius-sm)",
         "creo-md": "var(--creo-radius-md)",
         "creo-lg": "var(--creo-radius-lg)",
@@ -55,6 +55,15 @@ const config: Config = {
         creo: "var(--creo-shadow-elevated)",
         "creo-card": "var(--creo-shadow-card-hover)",
         "creo-modal": "var(--creo-shadow-modal)",
+      },
+      keyframes: {
+        "creo-shimmer": {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
+      },
+      animation: {
+        "creo-shimmer": "creo-shimmer 1.35s ease-in-out infinite",
       },
       colors: {
         background: "var(--background)",
@@ -79,6 +88,9 @@ const config: Config = {
           blue: "var(--creo-blue)",
           "blue-soft": "var(--creo-blue-soft)",
           "blue-deep": "var(--creo-blue-deep)",
+          /** Texte / icônes : lisible sur le fond du thème (clair = marque, sombre = #93a8ff) */
+          "blue-readable": "var(--creo-blue-readable)",
+          "blue-readable-muted": "var(--creo-blue-readable-muted)",
           teal: "var(--creo-teal)",
           purple: "var(--creo-purple)",
           "purple-light": "var(--creo-purple-light)",

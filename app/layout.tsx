@@ -6,6 +6,7 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { cn } from "@/lib/utils";
 
+/** UI : Inter (400–700), corps 14px / 20px via design-system + globals. */
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -36,7 +37,7 @@ export default function RootLayout({
         className={cn(
           inter.variable,
           jetbrainsMono.variable,
-          "font-sans antialiased"
+          "font-sans antialiased",
         )}
         suppressHydrationWarning
       >

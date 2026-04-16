@@ -1,3 +1,4 @@
+import { CookieConsentBanner } from "@/components/cookie-consent-banner";
 import { ThemeProvider } from "@/components/theme-provider";
 
 /**
@@ -5,5 +6,10 @@ import { ThemeProvider } from "@/components/theme-provider";
  * (accès à `document` au rendu). Les formulaires affichent déjà les messages inline.
  */
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <ThemeProvider>{children}</ThemeProvider>;
+  return (
+    <ThemeProvider>
+      {children}
+      <CookieConsentBanner />
+    </ThemeProvider>
+  );
 }

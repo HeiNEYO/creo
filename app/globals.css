@@ -2,6 +2,11 @@
 @import "shadcn/tailwind.css";
 @tailwind base;
 @import "../styles/design-system.css";
+
+/** Thème clair uniquement tant que le mode sombre est désactivé (voir theme-provider). */
+html {
+  color-scheme: light;
+}
 @tailwind components;
 @tailwind utilities;
 
@@ -9,9 +14,79 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /**
+   * Sombre : texte « marque » lisible (les fonds bg-creo-purple gardent --creo-purple / #0033ff).
+   */
+  .dark .text-primary {
+    color: var(--creo-blue-readable);
+  }
+  .dark .text-creo-purple {
+    color: var(--creo-blue-readable);
+  }
+  .dark .hover\:text-creo-purple:hover {
+    color: var(--creo-blue-readable);
+  }
 }
 
 @layer components {
+  /** Bouton public (éditeur + page) : couleurs / survol via variables CSS */
+  .creo-public-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    background-color: var(--btn-bg, #18181b);
+    color: var(--btn-fg, #ffffff);
+    transition:
+      transform var(--btn-t-ms, 200ms) ease,
+      background-color var(--btn-t-ms, 200ms) ease,
+      color var(--btn-t-ms, 200ms) ease,
+      box-shadow var(--btn-t-ms, 200ms) ease,
+      border-color var(--btn-t-ms, 200ms) ease;
+  }
+  .creo-public-btn:hover {
+    background-color: var(--btn-h-bg, var(--btn-bg, #18181b));
+    color: var(--btn-h-fg, var(--btn-fg, #ffffff));
+    transform: scale(var(--btn-h-scale, 1));
+  }
+
+  /** Page publique : liens et texte riche héritent du thème (variables sur .creo-public-page). */
+  .creo-public-page .creo-rich-text {
+    color: var(--creo-page-secondary, #737373);
+  }
+  .creo-public-page .creo-rich-text a:not(.creo-public-btn) {
+    color: var(--creo-page-accent, #2563eb);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .creo-public-page .creo-rich-text a:not(.creo-public-btn):hover {
+    opacity: 0.88;
+  }
+  .creo-public-page a.creo-public-inline-link {
+    color: var(--creo-page-accent, #2563eb);
+    text-underline-offset: 2px;
+  }
+  .creo-public-page a.creo-public-inline-link:hover {
+    opacity: 0.88;
+  }
+  .creo-public-page .creo-public-accent-fill {
+    background-color: var(--creo-page-accent, #2563eb) !important;
+    color: #ffffff !important;
+  }
+  .creo-public-page .creo-public-accent-fill:hover {
+    filter: brightness(1.06);
+  }
+  .creo-public-page .creo-block-heading {
+    color: var(--creo-page-primary, #171717);
+  }
+
   /**
    * Shell dashboard : cartes adaptées au thème (clair type Shopify / sombre CRÉO).
    */
@@ -19,13 +94,15 @@
     border-color: #e3e5e8;
     background-color: #ffffff;
     color: #202223;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: var(--creo-shadow-card-rest);
+    border-radius: var(--creo-dashboard-card-radius);
   }
   .dark .creo-dashboard-polaris [data-creo-card] {
-    border-color: #2a2a2a;
-    background-color: #141414;
-    color: #fafafa;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--creo-dashboard-card-radius);
+    background-color: var(--creo-surface-raised);
+    color: var(--foreground);
+    box-shadow: none;
   }
   .creo-dashboard-polaris [data-creo-card][data-interactive] {
     transition:
@@ -34,18 +111,17 @@
   }
   .creo-dashboard-polaris [data-creo-card][data-interactive]:hover {
     border-color: #c9cccf;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--creo-shadow-card-hover-light);
   }
   .dark .creo-dashboard-polaris [data-creo-card][data-interactive]:hover {
-    border-color: #3f3f3f;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: none;
   }
 }
 
 @layer base {
   .theme {
     --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans);
   }
   * {
     @apply border-border;
