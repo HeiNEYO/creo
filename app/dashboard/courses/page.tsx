@@ -1,37 +1,14 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { redirect } from "next/navigation";
 
-import { PageHeader } from "@/components/dashboard/page-header";
-import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button-variants";
+import {
+  CoursesDashboard,
+  type CourseBandRow,
+} from "@/components/dashboard/courses/courses-dashboard";
 import { Card } from "@/components/ui/card";
 import { isRedirectError } from "@/lib/next/is-redirect-error";
 import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
 
 export const dynamic = "force-dynamic";
-
-function formatPrice(amount: number, currency: string | null | undefined): string {
-  const cur = (currency ?? "eur").toUpperCase();
-  const code = cur === "EUR" ? "EUR" : cur;
-  try {
-    return new Intl.NumberFormat("fr-FR", {
-      style: "currency",
-      currency: code,
-    }).format(amount);
-  } catch {
-    return `${amount} ${currency ?? ""}`;
-  }
-}
-
-type CourseRow = {
-  id: string;
-  title: string;
-  description: string | null;
-  price: number;
-  currency: string;
-  status: string;
-};
 
 export default async function CoursesPage() {
   try {
@@ -63,14 +40,16 @@ async function CoursesPageContent() {
     redirect("/login");
   }
 
-  let courses: CourseRow[] = [];
+  let courses: CourseBandRow[] = [];
   let queryError: string | null = null;
 
   if (workspaceId) {
     try {
       const { data, error } = await supabase
         .from("courses")
-        .select("id, title, description, price, currency, status")
+        .select(
+          "id, title, description, thumbnail_url, price, currency, status, access_type"
+        )
         .eq("workspace_id", workspaceId);
 
       if (error) {
@@ -92,12 +71,18 @@ async function CoursesPageContent() {
                 c.description === undefined || c.description === null
                   ? null
                   : String(c.description),
+              thumbnail_url:
+                typeof c.thumbnail_url === "string" && c.thumbnail_url.trim()
+                  ? c.thumbnail_url.trim()
+                  : null,
               price: Number.isFinite(priceNum) ? priceNum : 0,
               currency:
                 typeof c.currency === "string" && c.currency
                   ? c.currency
                   : "eur",
               status: typeof c.status === "string" ? c.status : "draft",
+              access_type:
+                typeof c.access_type === "string" ? c.access_type : "paid",
             };
           }) ?? [];
         courses.sort((a, b) => b.id.localeCompare(a.id));
@@ -110,20 +95,6 @@ async function CoursesPageContent() {
 
   return (
     <>
-      <PageHeader
-        title="Formations"
-        description="Crée des formations, modules et leçons — tout est enregistré dans Supabase."
-        action={
-          <Link
-            href="/dashboard/courses/new"
-            className={buttonVariants({ className: "gap-2" })}
-          >
-            <Plus className="size-4" />
-            Nouvelle formation
-          </Link>
-        }
-      />
-
       {!workspaceId ? (
         <Card className="border-amber-200 bg-amber-50/80 p-6 dark:border-amber-900/40 dark:bg-amber-950/25">
           <p className="text-creo-sm font-medium text-amber-900 dark:text-amber-100">
@@ -159,58 +130,7 @@ async function CoursesPageContent() {
         </Card>
       ) : null}
 
-      {!queryError && courses.length === 0 ? (
-        <Card className="flex flex-col items-center justify-center py-16 text-center">
-          <p className="text-creo-md font-medium text-creo-black dark:text-foreground">
-            Aucune formation
-          </p>
-          <p className="mt-2 max-w-sm text-creo-sm text-creo-gray-500">
-            Crée une formation ou attends la synchro avec ton workspace.
-          </p>
-          <Link
-            href="/dashboard/courses/new"
-            className={buttonVariants({ className: "mt-6 gap-2" })}
-          >
-            <Plus className="size-4" />
-            Nouvelle formation
-          </Link>
-        </Card>
-      ) : null}
-
-      {!queryError && courses.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {courses.map((c) => {
-            const initials = (c.title || "?").slice(0, 2).toUpperCase();
-            return (
-              <Link key={c.id} href={`/dashboard/courses/${c.id}`}>
-                <Card interactive className="h-full overflow-hidden p-0">
-                  <div className="relative aspect-video bg-gradient-to-br from-creo-purple-pale to-creo-purple/20">
-                    <span className="absolute left-3 top-3 text-2xl font-semibold text-creo-purple/40">
-                      {initials}
-                    </span>
-                    <div className="absolute right-2 top-2">
-                      <Badge variant={c.status === "published" ? "green" : "gray"}>
-                        {c.status === "published" ? "Publié" : "Brouillon"}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="p-5">
-                    <h2 className="text-creo-md font-semibold text-creo-black dark:text-foreground">
-                      {c.title || "Sans titre"}
-                    </h2>
-                    <p className="mt-2 line-clamp-2 text-creo-sm text-creo-gray-500">
-                      {c.description ?? "—"}
-                    </p>
-                    <p className="mt-3 text-creo-sm text-creo-gray-500">
-                      {formatPrice(c.price, c.currency)}
-                    </p>
-                  </div>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
-      ) : null}
+      {workspaceId && !queryError ? <CoursesDashboard courses={courses} /> : null}
     </>
   );
 }

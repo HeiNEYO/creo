@@ -88,7 +88,7 @@ export function ResetPasswordForm() {
           type="password"
           autoComplete="new-password"
           required
-          minLength={8}
+          minLength={10}
         />
         <p className="text-xs text-muted-foreground">Au moins 8 caractères.</p>
       </div>

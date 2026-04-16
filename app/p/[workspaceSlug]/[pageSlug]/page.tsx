@@ -9,6 +9,7 @@ import {
 
 type Props = {
   params: { workspaceSlug: string; pageSlug: string };
+  searchParams: Record<string, string | string[] | undefined>;
 };
 
 export const dynamic = "force-dynamic";
@@ -25,17 +26,35 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PublicPublishedPage({ params }: Props) {
+export default async function PublicPublishedPage({ params, searchParams }: Props) {
   const row = await fetchPublicPage(params.workspaceSlug, params.pageSlug);
   if (!row) {
     notFound();
   }
 
-  await trackPublicPageView(params.workspaceSlug, params.pageSlug, null);
+  const isDashboardPreview = searchParams.creo_preview === "1";
+  if (!isDashboardPreview) {
+    await trackPublicPageView(params.workspaceSlug, params.pageSlug, null);
+  }
+
+  const paid = searchParams.paid;
+  const paidOk = paid === "1" || paid === "true";
+  const paidCancelled = paid === "0" || paid === "false";
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950">
-      <PublicPageRenderer title={row.title} content={row.content} />
+      <PublicPageRenderer
+        title={row.title}
+        content={row.content}
+        pageType={row.type}
+        stripeReady={row.stripe_ready}
+        workspaceSlug={params.workspaceSlug}
+        pageSlug={params.pageSlug}
+        pageId={row.id}
+        paidOk={paidOk}
+        paidCancelled={paidCancelled}
+        metaPixelId={row.meta_pixel_id}
+      />
     </div>
   );
 }

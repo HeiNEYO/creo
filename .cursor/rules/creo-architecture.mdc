@@ -1,0 +1,17 @@
+---
+description: Où placer le code dans CRÉO (structure repo + scaling)
+globs: "**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# Structure CRÉO
+
+- **Pages & API Next** : `app/` — ne pas déplacer hors de cette arborescence.
+- **Logique serveur, BDD, intégrations** : `lib/<domaine>/` (`auth`, `workspaces`, `pages`, `pages/editor`, `stripe`, `supabase`, `public-pages`, etc.).
+- **Composants React** : `components/<domaine>/` ; primitives : `components/ui/`.
+- **Limites requêtes / pagination** : `lib/config/limits.ts`.
+- **JSON route handlers** : `lib/http/response.ts` (`jsonData`, `jsonError`).
+
+Référence détaillée : `docs/architecture.md`. Pour agents : `AGENTS.md`.
+
+Nouvelle fonctionnalité : choisir le dossier `lib` et `components` du **même domaine métier** ; garder les route handlers dans `app/api/.../route.ts` minces en déléguant à `lib/`.

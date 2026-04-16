@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { PageHeader } from "@/components/dashboard/page-header";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { Card } from "@/components/ui/card";
 import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
@@ -23,10 +22,6 @@ export default async function QuestionnairePage() {
 
   return (
     <>
-      <PageHeader
-        title="Questionnaire"
-        description="Quelques questions pour mieux te connaître — optionnel, sans bloquer ton accès."
-      />
       <Card className="space-y-4 p-6">
         <p className="text-creo-sm text-creo-gray-600 dark:text-muted-foreground">
           Un parcours type Typeform sera branché ici : objectifs, activité, pourquoi tu

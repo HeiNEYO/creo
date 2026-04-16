@@ -7,7 +7,7 @@ export const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-creo-purple text-white hover:bg-creo-purple-light enabled:hover:-translate-y-px",
+          "bg-creo-purple !text-white hover:bg-creo-purple-light enabled:hover:-translate-y-px [&_svg]:!text-white [&_svg]:!stroke-white",
         outline:
           "border-creo-gray-300 bg-creo-white text-creo-black hover:border-creo-gray-400 hover:bg-creo-gray-50 dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
@@ -15,10 +15,19 @@ export const buttonVariants = cva(
         ghost:
           "text-creo-gray-700 hover:bg-creo-gray-100 border-transparent dark:text-foreground dark:hover:bg-white/[0.08]",
         danger:
-          "bg-creo-danger text-white hover:bg-creo-danger/90 enabled:hover:-translate-y-px",
+          "bg-creo-danger !text-white hover:bg-creo-danger/90 enabled:hover:-translate-y-px [&_svg]:!text-white [&_svg]:!stroke-white",
         destructive:
           "bg-creo-danger-pale text-[#dc2626] hover:bg-red-100 border-transparent dark:bg-destructive/20",
-        link: "border-transparent text-creo-purple underline-offset-4 hover:underline",
+        link: "border-transparent text-creo-purple underline-offset-4 hover:underline dark:text-creo-blue-readable dark:underline",
+        /** Couleur marque Stripe (#635BFF). */
+        stripe:
+          "bg-[#635BFF] !text-white hover:bg-[#5851e6] enabled:hover:-translate-y-px border-transparent [&_svg]:!text-white [&_svg]:!stroke-white",
+        /** Contour Stripe (bouton secondaire OAuth, etc.). */
+        stripeOutline:
+          "border-[#635BFF] bg-white text-[#635BFF] hover:bg-[#635BFF]/10 dark:border-[#635BFF] dark:bg-transparent dark:hover:bg-[#635BFF]/15",
+        /** Couleur marque PayPal (#0070BA). */
+        paypal:
+          "bg-[#0070BA] !text-white hover:bg-[#005ea6] enabled:hover:-translate-y-px border-transparent [&_svg]:!text-white [&_svg]:!stroke-white",
       },
       size: {
         default: "h-9 min-h-9 px-4 text-creo-base",

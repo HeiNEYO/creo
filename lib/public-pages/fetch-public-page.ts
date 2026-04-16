@@ -4,9 +4,12 @@ export type PublicPageRow = {
   id: string;
   title: string;
   slug: string;
+  type: string;
   content: unknown;
   seo_title: string | null;
   seo_description: string | null;
+  stripe_ready: boolean;
+  meta_pixel_id: string | null;
 };
 
 export async function fetchPublicPage(

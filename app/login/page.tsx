@@ -24,6 +24,11 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
   const authError =
     typeof searchParams.error === "string" ? searchParams.error : undefined;
 
+  const registerHref =
+    redirectTo?.startsWith("/invite/") && redirectTo.length > "/invite/".length
+      ? `/register?invite=${encodeURIComponent(redirectTo.slice("/invite/".length))}`
+      : "/register";
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -36,7 +41,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <p className="mt-4 text-creo-sm text-creo-gray-500">
           Pas encore de compte ?{" "}
           <Link
-            href="/register"
+            href={registerHref}
             className="font-medium text-creo-purple hover:underline"
           >
             Créer un compte
@@ -59,7 +64,13 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           </span>
         </div>
       </div>
-      <MagicLinkForm />
+      <MagicLinkForm
+        redirectNext={
+          redirectTo?.startsWith("/") && !redirectTo.startsWith("//")
+            ? redirectTo
+            : undefined
+        }
+      />
     </div>
   );
 }

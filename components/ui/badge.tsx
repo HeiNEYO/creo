@@ -13,7 +13,7 @@ const badgeVariants = cva(
         orange: "bg-creo-warning-pale text-amber-800 dark:text-amber-200",
         red: "bg-creo-danger-pale text-red-700 dark:text-red-300",
         gray: "bg-creo-gray-100 text-creo-gray-700 dark:bg-creo-gray-200 dark:text-creo-gray-700",
-        blue: "bg-creo-info-pale text-[#0033ff] dark:bg-creo-info-pale dark:text-[#6688ff]",
+        blue: "bg-creo-info-pale text-[#0033ff] dark:bg-[rgba(0,51,255,0.14)] dark:text-creo-blue-readable",
         outline:
           "border-creo-gray-300 bg-transparent text-creo-gray-700 dark:border-creo-gray-300 dark:text-creo-gray-500",
       },

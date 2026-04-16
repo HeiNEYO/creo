@@ -1,197 +1,253 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import Link from "next/link";
+import { BookOpen, Crown, Search } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import {
-  pingIntegrationWebhookServer,
-  updateWorkspaceIntegrationsServer,
-} from "@/lib/integrations/actions";
-import { PageHeader } from "@/components/dashboard/page-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { IntegrationCardIcon } from "@/components/dashboard/integrations/integration-card-icon";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { isPaidPlatformPlan } from "@/lib/workspaces/platform-plan";
+import {
+  integrationCatalog,
+  type IntegrationCatalogEntry,
+} from "@/lib/integrations/catalog";
+import { cn } from "@/lib/utils";
 
 type Props = {
   initialWebhookUrl: string;
   initialMetaPixelId: string;
+  initialStripeConnectAccountId: string | null;
+  initialStripeConnectChargesEnabled: boolean;
+  platformPlan: string;
 };
+
+function isConnected(
+  entry: IntegrationCatalogEntry,
+  p: {
+    webhookUrl: string;
+    metaPixelId: string;
+    stripeAccountId: string | null;
+    stripeCharges: boolean;
+  }
+): boolean {
+  switch (entry.id) {
+    case "webhook":
+      return p.webhookUrl.trim().length > 0;
+    case "meta-pixel":
+      return p.metaPixelId.trim().length > 0;
+    case "stripe":
+      return p.stripeCharges || (!!p.stripeAccountId && p.stripeAccountId.length > 0);
+    default:
+      return false;
+  }
+}
 
 export function IntegrationsView({
   initialWebhookUrl,
   initialMetaPixelId,
+  initialStripeConnectAccountId,
+  initialStripeConnectChargesEnabled,
+  platformPlan,
 }: Props) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const stripeMsg = searchParams.get("stripe");
-  const [webhookUrl, setWebhookUrl] = useState(initialWebhookUrl);
-  const [metaPixelId, setMetaPixelId] = useState(initialMetaPixelId);
-  const [saveMsg, setSaveMsg] = useState<string | null>(null);
-  const [pingMsg, setPingMsg] = useState<string | null>(null);
-  const [checkoutMsg, setCheckoutMsg] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [query, setQuery] = useState("");
+  const paid = isPaidPlatformPlan(platformPlan);
 
-  function saveIntegrations() {
-    setSaveMsg(null);
-    startTransition(async () => {
-      const res = await updateWorkspaceIntegrationsServer({
-        webhookUrl,
-        metaPixelId,
-      });
-      setSaveMsg(res.ok ? "Enregistré." : res.error);
-      if (res.ok) {
-        router.refresh();
+  const state = useMemo(
+    () => ({
+      webhookUrl: initialWebhookUrl,
+      metaPixelId: initialMetaPixelId,
+      stripeAccountId: initialStripeConnectAccountId,
+      stripeCharges: initialStripeConnectChargesEnabled,
+    }),
+    [
+      initialWebhookUrl,
+      initialMetaPixelId,
+      initialStripeConnectAccountId,
+      initialStripeConnectChargesEnabled,
+    ]
+  );
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      return integrationCatalog;
+    }
+    return integrationCatalog.filter(
+      (e) =>
+        e.label.toLowerCase().includes(q) ||
+        e.shortDescription.toLowerCase().includes(q)
+    );
+  }, [query]);
+
+  const { connected, browse, business } = useMemo(() => {
+    const connected: IntegrationCatalogEntry[] = [];
+    const browse: IntegrationCatalogEntry[] = [];
+    const business: IntegrationCatalogEntry[] = [];
+
+    for (const entry of filtered) {
+      if (entry.comingSoon) {
+        browse.push(entry);
+        continue;
       }
-    });
-  }
-
-  function pingWebhook() {
-    setPingMsg(null);
-    startTransition(async () => {
-      const res = await pingIntegrationWebhookServer();
-      if (res.ok) {
-        setPingMsg(`Réponse HTTP ${res.status}`);
+      const c = isConnected(entry, state);
+      if (c) {
+        connected.push(entry);
+        continue;
+      }
+      const locked = entry.requiresPaidPlan && !paid;
+      if (locked) {
+        business.push(entry);
       } else {
-        setPingMsg(res.error);
+        browse.push(entry);
       }
-    });
-  }
+    }
 
-  function startStripeCheckout() {
-    setCheckoutMsg(null);
-    startTransition(async () => {
-      const r = await fetch("/api/stripe/checkout", { method: "POST" });
-      if (!r.ok) {
-        const j = (await r.json().catch(() => ({}))) as { error?: string };
-        setCheckoutMsg(j.error ?? `Erreur ${r.status}`);
-        return;
-      }
-      const j = (await r.json()) as { url?: string };
-      if (j.url) {
-        window.location.href = j.url;
-        return;
-      }
-      setCheckoutMsg("Pas d’URL de paiement.");
-    });
+    return { connected, browse, business };
+  }, [filtered, state, paid]);
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-creo-xl font-semibold tracking-tight text-creo-black dark:text-foreground">
+          Intégrations
+        </h1>
+        <Link
+          href="/aides"
+          className="inline-flex size-10 items-center justify-center rounded-lg border border-creo-gray-200 text-creo-gray-600 transition-colors hover:bg-creo-gray-50 dark:border-border dark:text-muted-foreground dark:hover:bg-muted/50"
+          aria-label="Aide et documentation"
+        >
+          <BookOpen className="size-5" />
+        </Link>
+      </div>
+
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-creo-gray-400" />
+        <Input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Rechercher une intégration"
+          className="h-11 rounded-creo-lg border-creo-gray-200 pl-10 dark:border-border"
+          aria-label="Rechercher une intégration"
+        />
+      </div>
+
+      <IntegrationSection
+        title="Intégrations connectées"
+        titleClassName="text-green-700 dark:text-green-400"
+        dot
+        items={connected}
+        emptyHint="Aucune intégration active pour l’instant — configure-en une ci-dessous."
+      />
+
+      <IntegrationSection title="Parcourir" items={browse} />
+
+      {business.length > 0 ? (
+        <div className="space-y-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-creo-sm font-semibold uppercase tracking-wide text-creo-gray-500 dark:text-muted-foreground">
+              Intégrations sur forfait supérieur
+            </h2>
+            <Link
+              href="/dashboard/settings?section=subscription-creo"
+              className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-creo-xs font-medium text-amber-950 transition-colors hover:bg-amber-100 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-100 dark:hover:bg-amber-950/60"
+            >
+              <Crown className="size-3.5 shrink-0" aria-hidden />
+              Essaye gratuitement un forfait supérieur
+            </Link>
+          </div>
+          <IntegrationGrid items={business} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function IntegrationSection({
+  title,
+  titleClassName,
+  dot,
+  items,
+  emptyHint,
+}: {
+  title: string;
+  titleClassName?: string;
+  dot?: boolean;
+  items: IntegrationCatalogEntry[];
+  emptyHint?: string;
+}) {
+  if (items.length === 0) {
+    if (!emptyHint) {
+      return null;
+    }
+    return (
+      <div className="space-y-4">
+        <h2
+          className={cn(
+            "flex items-center gap-2 text-creo-sm font-semibold uppercase tracking-wide text-creo-gray-500 dark:text-muted-foreground",
+            titleClassName
+          )}
+        >
+          {dot ? (
+            <span className="size-2 rounded-full bg-green-500 dark:bg-green-400" aria-hidden />
+          ) : null}
+          {title}
+        </h2>
+        <p className="text-creo-sm text-creo-gray-500 dark:text-muted-foreground">{emptyHint}</p>
+      </div>
+    );
   }
 
   return (
-    <>
-      <PageHeader
-        title="Intégrations"
-        description="Webhook sortant, pixel Meta, abonnement Stripe"
-      />
+    <div className="space-y-4">
+      <h2
+        className={cn(
+          "flex items-center gap-2 text-creo-sm font-semibold uppercase tracking-wide text-creo-gray-500 dark:text-muted-foreground",
+          titleClassName
+        )}
+      >
+        {dot ? (
+          <span className="size-2 rounded-full bg-green-500 dark:bg-green-400" aria-hidden />
+        ) : null}
+        {title}
+      </h2>
+      <IntegrationGrid items={items} />
+    </div>
+  );
+}
 
-      {stripeMsg === "success" ? (
-        <Card className="mb-4 border-green-200 bg-green-50 p-4 text-creo-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200">
-          Paiement Stripe reçu — le plan workspace sera mis à jour après traitement du
-          webhook.
-        </Card>
-      ) : null}
-      {stripeMsg === "cancel" ? (
-        <Card className="mb-4 p-4 text-creo-sm text-creo-gray-600">
-          Paiement annulé.
-        </Card>
-      ) : null}
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <Card className="p-5 sm:col-span-2 xl:col-span-3">
-          <div className="flex size-10 items-center justify-center rounded-creo-md bg-creo-gray-100 text-creo-sm font-medium text-creo-gray-600 dark:text-muted-foreground">
-            WH
-          </div>
-          <h3 className="mt-4 text-creo-md font-semibold">Webhook sortant</h3>
-          <p className="mt-1 text-creo-sm text-creo-gray-500">
-            URL appelée pour les tests (événement <code className="text-creo-xs">creo.test</code>
-            ).
-          </p>
-          <div className="mt-4 space-y-2">
-            <Label htmlFor="wh-url">URL HTTPS</Label>
-            <Input
-              id="wh-url"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              placeholder="https://…"
-              disabled={pending}
-            />
-          </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Button type="button" size="sm" onClick={saveIntegrations} disabled={pending}>
-              Enregistrer
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={pingWebhook}
-              disabled={pending}
+function IntegrationGrid({ items }: { items: IntegrationCatalogEntry[] }) {
+  return (
+    <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {items.map((entry) => (
+        <li key={entry.id}>
+          <Link href={`/dashboard/integrations/${entry.id}`} className="block h-full">
+            <Card
+              interactive
+              className="h-full !rounded-xl border !border-creo-gray-200/95 p-5 shadow-[var(--creo-shadow-card-rest)] dark:!border-white/[0.12] sm:p-6"
             >
-              Tester le webhook
-            </Button>
-          </div>
-          {saveMsg ? (
-            <p className="mt-2 text-creo-sm text-creo-gray-600 dark:text-muted-foreground">
-              {saveMsg}
-            </p>
-          ) : null}
-          {pingMsg ? (
-            <p className="mt-2 text-creo-sm text-creo-gray-600 dark:text-muted-foreground">
-              {pingMsg}
-            </p>
-          ) : null}
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex size-10 items-center justify-center rounded-creo-md bg-creo-gray-100 text-creo-sm font-medium text-creo-gray-600">
-            Me
-          </div>
-          <h3 className="mt-4 text-creo-md font-semibold">Meta Pixel</h3>
-          <p className="mt-1 text-creo-sm text-creo-gray-500">
-            ID stocké pour usage futur (injection script).
-          </p>
-          <div className="mt-4 space-y-2">
-            <Label htmlFor="px-id">Pixel ID</Label>
-            <Input
-              id="px-id"
-              value={metaPixelId}
-              onChange={(e) => setMetaPixelId(e.target.value)}
-              placeholder="1234567890"
-              disabled={pending}
-            />
-          </div>
-          <Button
-            type="button"
-            className="mt-4"
-            size="sm"
-            variant="outline"
-            onClick={saveIntegrations}
-            disabled={pending}
-          >
-            Enregistrer
-          </Button>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex size-10 items-center justify-center rounded-creo-md bg-creo-gray-100 text-creo-sm font-medium text-creo-gray-600">
-            St
-          </div>
-          <h3 className="mt-4 text-creo-md font-semibold">Stripe</h3>
-          <p className="mt-1 text-creo-sm text-creo-gray-500">
-            Abonnement Creator (prix défini par{" "}
-            <code className="text-creo-xs">STRIPE_PRICE_CREATOR</code>).
-          </p>
-          <div className="mt-4 flex items-center justify-between gap-2">
-            <Badge variant="gray">À connecter</Badge>
-            <Button type="button" size="sm" onClick={startStripeCheckout} disabled={pending}>
-              Ouvrir Checkout
-            </Button>
-          </div>
-          {checkoutMsg ? (
-            <p className="mt-2 text-creo-sm text-red-600 dark:text-red-400">{checkoutMsg}</p>
-          ) : null}
-        </Card>
-      </div>
-    </>
+              <div className="flex items-start gap-3 sm:gap-4">
+                <IntegrationCardIcon id={entry.id} />
+                <div className="min-w-0 flex-1 pt-0.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-creo-md font-semibold text-creo-black dark:text-foreground">
+                      {entry.label}
+                    </span>
+                    {entry.comingSoon ? (
+                      <span className="rounded-full bg-creo-gray-100 px-2 py-0.5 text-creo-xs font-medium text-creo-gray-600 dark:bg-muted dark:text-muted-foreground">
+                        Bientôt
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-2 text-creo-sm leading-relaxed text-creo-gray-500 dark:text-muted-foreground">
+                    {entry.shortDescription}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }

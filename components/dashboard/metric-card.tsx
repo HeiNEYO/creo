@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 type MetricCardProps = {
   label: string;
   value: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   iconClassName?: string;
-  trend: string;
-  trendPositive?: boolean;
+  /** Variation vs période précédente (%). Absent = ligne masquée. */
+  deltaPct?: number | null;
 };
 
 export function MetricCard({
@@ -17,37 +17,55 @@ export function MetricCard({
   value,
   icon: Icon,
   iconClassName,
-  trend,
-  trendPositive = true,
+  deltaPct,
 }: MetricCardProps) {
+  const showDelta = typeof deltaPct === "number" && Number.isFinite(deltaPct);
+
   return (
-    <Card className="rounded-2xl p-5 sm:p-6">
-      <div className="flex items-start justify-between gap-3">
-        <div
-          className={cn(
-            "flex size-9 items-center justify-center rounded-creo-md",
-            iconClassName ?? "bg-creo-purple-pale text-creo-purple"
-          )}
-        >
-          <Icon className="size-4" />
+    <Card className="border-[#e3e5e8] bg-white p-5 shadow-none dark:border-[var(--creo-dashboard-border)] dark:bg-[var(--creo-surface-raised)] sm:p-6">
+      {Icon ? (
+        <div className="flex items-start justify-between gap-3">
+          <div
+            className={cn(
+              "flex size-9 items-center justify-center rounded-[10px] bg-[var(--creo-dashboard-canvas)] text-[#5c5f62] dark:bg-white/[0.06] dark:text-creo-gray-500",
+              iconClassName,
+            )}
+          >
+            <Icon className="size-[18px]" strokeWidth={1.75} />
+          </div>
         </div>
-      </div>
-      <p className="mt-4 text-creo-sm text-[#616161] dark:text-[#a3a3a3]">
-        {label}
-      </p>
-      <p className="mt-1 text-creo-2xl font-medium text-[#202223] dark:text-white">
-        {value}
-      </p>
+      ) : null}
       <p
         className={cn(
-          "mt-2 text-creo-sm font-medium",
-          trendPositive
-            ? "text-[#059669] dark:text-emerald-400"
-            : "text-creo-danger dark:text-red-400"
+          "text-[13px] text-[#616161] dark:text-creo-gray-500",
+          Icon ? "mt-4" : "mt-0",
         )}
       >
-        {trend}
+        {label}
       </p>
+      <p className="mt-1.5 text-[26px] font-semibold leading-tight tracking-tight text-[#202223] dark:text-white">
+        {value}
+      </p>
+      {showDelta ? (
+        <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span
+            className={cn(
+              "inline-flex items-center gap-0.5 rounded-full px-2.5 py-1 text-[13px] font-semibold tabular-nums tracking-tight",
+              deltaPct >= 0
+                ? "bg-[color:var(--creo-dashboard-trend-positive-soft)] text-[color:var(--creo-dashboard-trend-positive)]"
+                : "bg-[color:var(--creo-dashboard-trend-negative-soft)] text-[color:var(--creo-dashboard-trend-negative)]",
+            )}
+          >
+            <span className="text-[0.95em]" aria-hidden>
+              {deltaPct >= 0 ? "↗" : "↘"}
+            </span>
+            {Math.abs(deltaPct).toFixed(1)} %
+          </span>
+          <span className="text-[12px] font-normal text-[#8c9196] dark:text-creo-gray-500">
+            vs période préc.
+          </span>
+        </div>
+      ) : null}
     </Card>
   );
 }

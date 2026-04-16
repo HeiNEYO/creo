@@ -74,18 +74,20 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
       return;
     }
 
-    let workspace: { error: string | null };
-    try {
-      workspace = await ensureDefaultWorkspaceFromBrowser(supabase);
-    } catch {
-      setError("Erreur réseau lors de la préparation du workspace. Réessaie.");
-      setPending(false);
-      return;
-    }
-    if (workspace.error) {
-      setError(workspace.error);
-      setPending(false);
-      return;
+    if (!target.startsWith("/invite/")) {
+      let workspace: { error: string | null };
+      try {
+        workspace = await ensureDefaultWorkspaceFromBrowser(supabase);
+      } catch {
+        setError("Erreur réseau lors de la préparation du workspace. Réessaie.");
+        setPending(false);
+        return;
+      }
+      if (workspace.error) {
+        setError(workspace.error);
+        setPending(false);
+        return;
+      }
     }
 
     window.location.assign(target);

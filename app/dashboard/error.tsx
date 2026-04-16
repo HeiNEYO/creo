@@ -35,7 +35,7 @@ export default function DashboardError({
           Réessayer
         </Button>
         <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
-          Cockpit
+          Accueil
         </Link>
       </div>
     </Card>

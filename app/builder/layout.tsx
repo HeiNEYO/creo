@@ -7,6 +7,8 @@ export default function BuilderLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8f8f8]">{children}</div>
+    <div className="creo-builder-theme flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-white dark:bg-zinc-950">
+      {children}
+    </div>
   );
 }

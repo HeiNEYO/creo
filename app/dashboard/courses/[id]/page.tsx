@@ -16,6 +16,8 @@ function normalizeCourseRow(course: {
   status: unknown;
   price: unknown;
   currency: unknown;
+  thumbnail_url?: unknown;
+  access_type?: unknown;
 }) {
   const raw = course.price;
   const priceNum =
@@ -37,6 +39,12 @@ function normalizeCourseRow(course: {
       typeof course.currency === "string" && course.currency
         ? course.currency.toLowerCase()
         : "eur",
+    thumbnail_url:
+      typeof course.thumbnail_url === "string" && course.thumbnail_url.trim()
+        ? course.thumbnail_url.trim()
+        : null,
+    access_type:
+      typeof course.access_type === "string" ? course.access_type : "paid",
   };
 }
 
@@ -55,7 +63,7 @@ export default async function CourseEditorPage({ params }: PageProps) {
 
   const { data, error } = await supabase
     .from("courses")
-    .select("id, title, description, status, price, currency")
+    .select("id, title, description, status, price, currency, thumbnail_url, access_type")
     .eq("id", params.id)
     .eq("workspace_id", workspaceId)
     .maybeSingle();

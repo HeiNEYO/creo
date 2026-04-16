@@ -4,6 +4,14 @@ import { createClient } from "@/lib/supabase/server";
 import type { AuthActionState } from "@/lib/auth/form-state";
 import { forgotPasswordSchema } from "@/lib/auth/validation";
 
+function safeInternalNext(raw: unknown): string {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  if (!s || !s.startsWith("/") || s.startsWith("//")) {
+    return "/dashboard";
+  }
+  return s;
+}
+
 export async function forgotPasswordAction(
   _prev: AuthActionState,
   formData: FormData
@@ -73,11 +81,12 @@ export async function magicLinkAction(
     };
   }
 
+  const next = safeInternalNext(formData.get("next"));
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
-      emailRedirectTo: `${baseUrl.replace(/\/$/, "")}/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${baseUrl.replace(/\/$/, "")}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 

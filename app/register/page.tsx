@@ -1,8 +1,25 @@
 import Link from "next/link";
 
 import { RegisterForm } from "@/components/auth/register-form";
+import { getWorkspaceInvitePreview } from "@/lib/workspaces/invite-preview";
 
-export default function RegisterPage() {
+export const dynamic = "force-dynamic";
+
+type RegisterPageProps = {
+  searchParams: Record<string, string | string[] | undefined>;
+};
+
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+  const inviteRaw =
+    typeof searchParams.invite === "string" ? searchParams.invite.trim() : "";
+  let defaultEmail: string | undefined;
+  if (inviteRaw.length >= 10) {
+    const preview = await getWorkspaceInvitePreview(inviteRaw);
+    if (preview.ok) {
+      defaultEmail = preview.inviteEmail;
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -22,7 +39,10 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
-      <RegisterForm />
+      <RegisterForm
+        inviteToken={inviteRaw.length >= 10 ? inviteRaw : undefined}
+        defaultEmail={defaultEmail}
+      />
     </div>
   );
 }

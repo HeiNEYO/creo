@@ -57,6 +57,7 @@ export async function createContactServer(input: {
   }
 
   revalidatePath("/dashboard/contacts");
+  revalidatePath("/dashboard/email-crm", "layout");
   return { ok: true };
 }
 
@@ -82,6 +83,46 @@ export async function updateContactTagsServer(input: {
   }
 
   revalidatePath("/dashboard/contacts");
+  revalidatePath("/dashboard/email-crm", "layout");
+  return { ok: true };
+}
+
+export async function deleteContactServer(input: {
+  contactId: string;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = createClient();
+  const user = await readAuthUser(supabase);
+  if (!user) {
+    return { ok: false, error: "Non connecté." };
+  }
+
+  const workspaceId = await getFirstWorkspaceIdForUser(supabase, user.id);
+  if (!workspaceId) {
+    return { ok: false, error: "Aucun workspace." };
+  }
+
+  const { data: row, error: fetchErr } = await supabase
+    .from("contacts")
+    .select("id, workspace_id")
+    .eq("id", input.contactId)
+    .maybeSingle();
+
+  if (fetchErr || !row) {
+    return { ok: false, error: fetchErr?.message ?? "Contact introuvable." };
+  }
+
+  if (row.workspace_id !== workspaceId) {
+    return { ok: false, error: "Accès refusé." };
+  }
+
+  const { error } = await supabase.from("contacts").delete().eq("id", input.contactId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/dashboard/contacts");
+  revalidatePath("/dashboard/email-crm", "layout");
   return { ok: true };
 }
 
@@ -154,6 +195,7 @@ export async function importContactsCsvServer(
   }
 
   revalidatePath("/dashboard/contacts");
+  revalidatePath("/dashboard/email-crm", "layout");
   return { ok: true, imported, skipped };
 }
 

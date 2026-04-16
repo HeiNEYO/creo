@@ -15,9 +15,11 @@ export async function updateCourseServer(input: {
   courseId: string;
   title?: string;
   description?: string | null;
+  thumbnail_url?: string | null;
   price?: number;
   currency?: string;
   status?: "draft" | "published";
+  access_type?: "paid" | "free" | "members_only";
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const supabase = createClient();
   const user = await readAuthUser(supabase);
@@ -44,6 +46,17 @@ export async function updateCourseServer(input: {
   }
   if (input.status === "draft" || input.status === "published") {
     patch.status = input.status;
+  }
+  if (input.thumbnail_url !== undefined) {
+    const u = input.thumbnail_url?.trim();
+    patch.thumbnail_url = u ? u : null;
+  }
+  if (
+    input.access_type === "paid" ||
+    input.access_type === "free" ||
+    input.access_type === "members_only"
+  ) {
+    patch.access_type = input.access_type;
   }
 
   if (Object.keys(patch).length === 0) {
@@ -281,6 +294,11 @@ export async function deleteCourseLessonServer(input: {
 
 export async function createCourseServer(input: {
   title: string;
+  description?: string | null;
+  thumbnail_url?: string | null;
+  price?: number;
+  currency?: string;
+  access_type?: "paid" | "free" | "members_only";
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const supabase = createClient();
   const user = await readAuthUser(supabase);
@@ -299,11 +317,37 @@ export async function createCourseServer(input: {
     return { ok: false, error: "Le titre est requis." };
   }
 
+  const description =
+    input.description === undefined || input.description === null
+      ? null
+      : input.description.trim() || null;
+  const thumbnail =
+    input.thumbnail_url === undefined || input.thumbnail_url === null
+      ? null
+      : input.thumbnail_url.trim() || null;
+
+  let price = 0;
+  if (typeof input.price === "number" && Number.isFinite(input.price) && input.price >= 0) {
+    price = input.price;
+  }
+
+  const currency = (input.currency ?? "eur").trim().toLowerCase() || "eur";
+
+  const accessType =
+    input.access_type === "free" || input.access_type === "members_only"
+      ? input.access_type
+      : "paid";
+
   const { data, error } = await supabase
     .from("courses")
     .insert({
       workspace_id: workspaceId,
       title,
+      description,
+      thumbnail_url: thumbnail,
+      price,
+      currency,
+      access_type: accessType,
       status: "draft",
     })
     .select("id")
@@ -315,4 +359,23 @@ export async function createCourseServer(input: {
 
   revalidateCourse(data.id);
   return { ok: true, id: data.id };
+}
+
+export async function deleteCourseServer(input: {
+  courseId: string;
+}): Promise<{ ok: true } | { ok: false; error: string }> {
+  const supabase = createClient();
+  const user = await readAuthUser(supabase);
+  if (!user) {
+    return { ok: false, error: "Non connecté." };
+  }
+
+  const { error } = await supabase.from("courses").delete().eq("id", input.courseId);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  revalidatePath("/dashboard/courses");
+  return { ok: true };
 }

@@ -8,7 +8,11 @@ export const emailSchema = z
 
 export const passwordSchema = z
   .string()
-  .min(8, "Le mot de passe doit contenir au moins 8 caractères.");
+  .min(10, "Le mot de passe doit contenir au moins 10 caractères.")
+  .regex(/[a-z]/, "Au moins une lettre minuscule.")
+  .regex(/[A-Z]/, "Au moins une lettre majuscule.")
+  .regex(/[0-9]/, "Au moins un chiffre.")
+  .regex(/[^a-zA-Z0-9]/, "Au moins un caractère spécial.");
 
 export const signInSchema = z.object({
   email: emailSchema,

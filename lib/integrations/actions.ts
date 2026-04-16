@@ -65,7 +65,7 @@ export async function updateWorkspaceIntegrationsServer(input: {
     return { ok: false, error: error.message };
   }
 
-  revalidatePath("/dashboard/integrations");
+  revalidatePath("/dashboard/integrations", "layout");
   return { ok: true };
 }
 

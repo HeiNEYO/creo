@@ -20,16 +20,26 @@ export default async function IntegrationsPage() {
   const workspaceId = await getFirstWorkspaceIdForUser(supabase, user.id);
   let webhook = "";
   let pixel = "";
+  let stripeConnectAccountId: string | null = null;
+  let stripeConnectChargesEnabled = false;
+  let platformPlan = "starter";
 
   if (workspaceId) {
     const { data } = await supabase
       .from("workspaces")
-      .select("settings")
+      .select(
+        "settings, stripe_connect_account_id, stripe_connect_charges_enabled, plan"
+      )
       .eq("id", workspaceId)
       .single();
+    platformPlan = typeof data?.plan === "string" ? data.plan : "starter";
     const s = data?.settings as WorkspaceIntegrationSettings | null | undefined;
     webhook = s?.webhook_url ?? "";
     pixel = s?.meta_pixel_id ?? "";
+    stripeConnectAccountId =
+      (data?.stripe_connect_account_id as string | null | undefined) ?? null;
+    stripeConnectChargesEnabled =
+      (data?.stripe_connect_charges_enabled as boolean | undefined) ?? false;
   }
 
   return (
@@ -40,7 +50,13 @@ export default async function IntegrationsPage() {
         </Card>
       }
     >
-      <IntegrationsView initialWebhookUrl={webhook} initialMetaPixelId={pixel} />
+      <IntegrationsView
+        initialWebhookUrl={webhook}
+        initialMetaPixelId={pixel}
+        initialStripeConnectAccountId={stripeConnectAccountId}
+        initialStripeConnectChargesEnabled={stripeConnectChargesEnabled}
+        platformPlan={platformPlan}
+      />
     </Suspense>
   );
 }

@@ -5,10 +5,34 @@ alwaysApply: true
 
 # Déploiement Vercel (CRÉO)
 
-Après toute modification qui touche l’app Next.js (UI, routes, logique, config), **lancer un déploiement production** depuis la racine du projet :
+## Agent Cursor : déploiement automatique à chaque fois
+
+Dès que la session modifie des fichiers qui impactent l’app Next.js (UI, routes, `lib/`, config, assets servis par l’app, etc.), **à la fin du travail** (build OK) : **lancer le déploiement production sans attendre** une consigne explicite du type « deploy » ou « deploy.bat ».
+
+- Ne pas se limiter à *proposer* le déploiement : **l’exécuter** (`deploy.bat` sur Windows depuis la racine, ou équivalent ci‑dessous).
+- Si le déploiement échoue (auth, réseau, quota), diagnostiquer et corriger ou expliquer le blocage.
+- **Exception raisonnable** : changements purement hors runtime (ex. `docs/**`, commentaires sans effet, migrations SQL seules si l’utilisateur ne demande pas la prod) — dans le doute sur un changement produit, **déployer**.
+
+**Modifications design** (CSS, tokens, Tailwind, composants visuels, `globals.css`, `design-system.css`) : **toujours** enchaîner avec un déploiement une fois le build validé.
+
+## Commandes (machine locale / agent)
+
+- **Windows (recommandé)** : à la racine du repo :
+
+```bat
+deploy.bat
+```
+
+(`deploy.bat` exécute `npm run build` puis `npx vercel --prod --yes`.)
+
+- **macOS / Linux ou sans script** :
 
 ```bash
+npm run build
 npm run deploy:vercel
 ```
 
-Ne pas se contenter de dire à l’utilisateur de le faire : **exécuter la commande** une fois les changements validés (build/lint si pertinent). Si le déploiement échoue (auth, réseau), diagnostiquer et proposer une correction.
+## Déploiement automatique sans passer par l’agent (push Git)
+
+- **Option A — Vercel + Git** : dans le dashboard Vercel, **Connecter** le dépôt GitHub au projet ; chaque push sur la branche de production déclenche un déploiement.
+- **Option B — GitHub Actions** : le workflow `.github/workflows/vercel-production.yml` tourne **à chaque push sur `main`** dès que les secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` sont définis sur le dépôt (voir l’en-tête du YAML). Si l’option A est déjà active pour le même repo, supprime ce workflow pour éviter un double déploiement.

@@ -36,7 +36,6 @@ export default async function BuilderPage({ params }: PageProps) {
     base && ws?.slug
       ? `${base}/p/${ws.slug}/${page.slug}`
       : null;
-
   return (
     <BuilderShell
       pageId={page.id}

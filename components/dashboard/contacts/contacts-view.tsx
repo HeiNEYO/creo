@@ -1,10 +1,13 @@
 "use client";
 
 import { Plus, Search, Upload } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 
 import {
   createContactServer,
+  deleteContactServer,
   importContactsCsvServer,
   updateContactTagsServer,
 } from "@/lib/contacts/actions";
@@ -12,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button-variants";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +26,7 @@ export type ContactRow = {
   email: string;
   first_name: string | null;
   last_name: string | null;
+  phone?: string | null;
   tags: string[];
   source: string | null;
   subscribed: boolean;
@@ -45,9 +50,45 @@ function formatCreated(iso: string): string {
 
 type ContactsViewProps = {
   initialContacts: ContactRow[];
+  /** Mode CRM : pagination et filtres côté serveur (URL). */
+  crmPagination?: {
+    total: number;
+    page: number;
+    pageSize: number;
+  };
+  crmFilters?: {
+    q?: string;
+    tag?: string;
+    sort?: string;
+    dir?: "asc" | "desc";
+  };
+  /** Base des formulaires GET (recherche / tri). */
+  contactsBasePath?: string;
+  /** Export CSV — réservé aux plans Creator+ (cohérent avec l’API). */
+  exportCsvEnabled?: boolean;
 };
 
-export function ContactsView({ initialContacts }: ContactsViewProps) {
+function buildContactsQuery(
+  base: Record<string, string | undefined>
+): string {
+  const p = new URLSearchParams();
+  Object.entries(base).forEach(([k, v]) => {
+    if (v !== undefined && v !== "") {
+      p.set(k, v);
+    }
+  });
+  const s = p.toString();
+  return s ? `?${s}` : "";
+}
+
+export function ContactsView({
+  initialContacts,
+  crmPagination,
+  crmFilters,
+  contactsBasePath = "/dashboard/email-crm/contacts",
+  exportCsvEnabled = false,
+}: ContactsViewProps) {
+  const router = useRouter();
   const [contacts, setContacts] = useState(initialContacts);
   const [openId, setOpenId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -62,34 +103,47 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
   const [tagEdit, setTagEdit] = useState("");
   const [importMsg, setImportMsg] = useState<string | null>(null);
   const [tagError, setTagError] = useState<string | null>(null);
+  const [contactActionError, setContactActionError] = useState<string | null>(null);
 
   const selected = contacts.find((r) => r.id === openId);
+
+  useEffect(() => {
+    setContacts(initialContacts);
+  }, [initialContacts]);
 
   useEffect(() => {
     if (!openId) {
       setTagEdit("");
       return;
     }
+    setContactActionError(null);
     const c = contacts.find((r) => r.id === openId);
     setTagEdit((c?.tags ?? []).join(", "));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sync seulement à l’ouverture du panneau
   }, [openId]);
 
   const filtered = useMemo(() => {
+    if (crmPagination) {
+      return contacts;
+    }
     const q = query.trim().toLowerCase();
     if (!q) return contacts;
     return contacts.filter((c) => {
       const blob = `${displayName(c)} ${c.email} ${(c.tags ?? []).join(" ")}`.toLowerCase();
       return blob.includes(q);
     });
-  }, [contacts, query]);
+  }, [contacts, query, crmPagination]);
+
+  const totalLabel = crmPagination
+    ? crmPagination.total
+    : contacts.length;
 
   async function refreshContacts() {
     const supabase = createClient();
     const { data } = await supabase
       .from("contacts")
       .select(
-        "id, email, first_name, last_name, tags, source, subscribed, created_at"
+        "id, email, first_name, last_name, phone, tags, source, subscribed, created_at"
       )
       .order("created_at", { ascending: false });
     if (data) {
@@ -113,7 +167,11 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
         setLastName("");
         setTags("");
         setAddOpen(false);
-        await refreshContacts();
+        if (crmPagination) {
+          router.refresh();
+        } else {
+          await refreshContacts();
+        }
       } else {
         setFormError(res.error);
       }
@@ -136,7 +194,11 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
           setImportMsg(
             `Import terminé : ${res.imported} ajouté(s), ${res.skipped} ignoré(s).`
           );
-          await refreshContacts();
+          if (crmPagination) {
+            router.refresh();
+          } else {
+            await refreshContacts();
+          }
         } else {
           setImportMsg(res.error);
         }
@@ -156,9 +218,40 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
         tags: tagEdit,
       });
       if (res.ok) {
-        await refreshContacts();
+        if (crmPagination) {
+          router.refresh();
+        } else {
+          await refreshContacts();
+        }
       } else {
         setTagError(res.error);
+      }
+    });
+  }
+
+  function removeContact() {
+    if (!selected) {
+      return;
+    }
+    if (
+      !window.confirm(
+        `Supprimer définitivement le contact ${selected.email} ? Cette action est irréversible.`
+      )
+    ) {
+      return;
+    }
+    setContactActionError(null);
+    startTransition(async () => {
+      const res = await deleteContactServer({ contactId: selected.id });
+      if (res.ok) {
+        setOpenId(null);
+        if (crmPagination) {
+          router.refresh();
+        } else {
+          await refreshContacts();
+        }
+      } else {
+        setContactActionError(res.error);
       }
     });
   }
@@ -167,9 +260,46 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
     <>
       <PageHeader
         title="Contacts"
-        description={`${contacts.length} contact${contacts.length !== 1 ? "s" : ""}`}
+        description={`${totalLabel} contact${totalLabel !== 1 ? "s" : ""}${
+          crmPagination && crmPagination.total > contacts.length
+            ? ` (page ${crmPagination.page})`
+            : ""
+        }`}
         action={
           <div className="flex flex-wrap gap-2">
+            {crmPagination ? (
+              exportCsvEnabled ? (
+                <a
+                  href={`/api/dashboard/email-crm/contacts/export${buildContactsQuery({
+                    q: crmFilters?.q,
+                    tag: crmFilters?.tag,
+                    sort: crmFilters?.sort,
+                    dir: crmFilters?.dir,
+                  })}`}
+                  className={buttonVariants({ variant: "outline", size: "sm" })}
+                >
+                  Exporter CSV
+                </a>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  title="Réservé au plan Creator ou supérieur"
+                >
+                  Exporter CSV
+                </Button>
+              )
+            ) : null}
+            {crmPagination && !exportCsvEnabled ? (
+              <Link
+                href="/dashboard/settings?section=subscription-creo"
+                className={buttonVariants({ variant: "ghost", size: "sm", className: "text-creo-purple" })}
+              >
+                Abonnement
+              </Link>
+            ) : null}
             <Button
               type="button"
               variant="outline"
@@ -188,7 +318,7 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
       />
 
       {importNote ? (
-        <Card className="mb-4 space-y-3 border-dashed p-4 text-creo-sm text-[#616161] dark:text-[#a3a3a3]">
+        <Card className="mb-4 space-y-3 border-dashed p-4 text-creo-sm text-[#616161] dark:text-creo-gray-500">
           <p>
             Fichier CSV avec en-tête :{" "}
             <code className="text-creo-xs">email</code>,{" "}
@@ -284,19 +414,87 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
         </div>
       ) : null}
 
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative max-w-md flex-1">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-creo-gray-400" />
-          <Input
-            className="pl-9"
-            placeholder="Email, nom, tag…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-        <Button type="button" variant="ghost" size="sm" disabled>
-          Filtres
-        </Button>
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        {crmPagination ? (
+          <form
+            method="get"
+            action={contactsBasePath}
+            className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end"
+          >
+            <div className="relative min-w-[200px] max-w-md flex-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-creo-gray-400" />
+              <Input
+                className="pl-9"
+                name="q"
+                placeholder="Email, nom…"
+                defaultValue={crmFilters?.q ?? ""}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Input
+                name="tag"
+                placeholder="Tag exact"
+                defaultValue={crmFilters?.tag ?? ""}
+                className="w-40"
+              />
+              <input type="hidden" name="sort" value={crmFilters?.sort ?? "created_at"} />
+              <input type="hidden" name="dir" value={crmFilters?.dir ?? "desc"} />
+              <Button type="submit" size="sm" variant="secondary">
+                Filtrer
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative max-w-md flex-1">
+              <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-creo-gray-400" />
+              <Input
+                className="pl-9"
+                placeholder="Email, nom, tag…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <Button type="button" variant="ghost" size="sm" disabled>
+              Filtres
+            </Button>
+          </div>
+        )}
+        {crmPagination ? (
+          <div className="flex flex-wrap items-center gap-2 text-creo-sm text-creo-gray-500">
+            <span>Trier :</span>
+            <Link
+              href={`${contactsBasePath}${buildContactsQuery({
+                q: crmFilters?.q,
+                tag: crmFilters?.tag,
+                sort: "created_at",
+                dir: crmFilters?.sort === "created_at" && crmFilters?.dir === "asc" ? "desc" : "asc",
+              })}`}
+              className={cn(
+                "rounded px-2 py-1 hover:bg-creo-gray-100 dark:hover:bg-white/10",
+                crmFilters?.sort !== "email" && crmFilters?.sort !== "name"
+                  ? "font-medium text-creo-black dark:text-white"
+                  : ""
+              )}
+            >
+              Date
+            </Link>
+            <Link
+              href={`${contactsBasePath}${buildContactsQuery({
+                q: crmFilters?.q,
+                tag: crmFilters?.tag,
+                sort: "email",
+                dir: crmFilters?.sort === "email" && crmFilters?.dir === "asc" ? "desc" : "asc",
+              })}`}
+              className={cn(
+                "rounded px-2 py-1 hover:bg-creo-gray-100 dark:hover:bg-white/10",
+                crmFilters?.sort === "email" ? "font-medium text-creo-black dark:text-white" : ""
+              )}
+            >
+              Email
+            </Link>
+          </div>
+        ) : null}
       </div>
 
       {contacts.length === 0 ? (
@@ -304,7 +502,7 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
           <p className="text-creo-md font-medium text-[#202223] dark:text-white">
             Aucun contact
           </p>
-          <p className="mt-2 max-w-sm text-creo-sm text-[#616161] dark:text-[#a3a3a3]">
+          <p className="mt-2 max-w-sm text-creo-sm text-[#616161] dark:text-creo-gray-500">
             Ajoute ton premier contact pour commencer à segmenter ton audience.
           </p>
           <Button type="button" className="mt-6" onClick={() => setAddOpen(true)}>
@@ -314,12 +512,14 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
         </Card>
       ) : filtered.length === 0 ? (
         <Card className="py-12 text-center text-creo-sm text-creo-gray-500">
-          Aucun résultat pour « {query} ».
+          Aucun résultat
+          {crmFilters?.q ? ` pour « ${crmFilters.q} »` : ""}.
         </Card>
       ) : (
+        <>
         <Card className="overflow-hidden p-0">
           <table className="w-full text-left text-creo-sm">
-            <thead className="border-b border-creo-gray-100 bg-creo-gray-50 text-creo-xs font-medium uppercase tracking-wide text-creo-gray-500 dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#a3a3a3]">
+            <thead className="border-b border-creo-gray-100 bg-creo-gray-50 text-creo-xs font-medium uppercase tracking-wide text-creo-gray-500 dark:border-[var(--creo-dashboard-border)] dark:bg-[var(--creo-surface-raised)] dark:text-creo-gray-500">
               <tr>
                 <th className="w-10 px-4 py-3">
                   <input type="checkbox" aria-label="Tout" disabled />
@@ -335,8 +535,8 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
                 <tr
                   key={r.id}
                   className={cn(
-                    "cursor-pointer border-b border-creo-gray-100 hover:bg-creo-gray-50 dark:border-[#2a2a2a] dark:hover:bg-[#1a1a1a]",
-                    openId === r.id && "bg-creo-purple-pale/40 dark:bg-[#1f1f3a]/50"
+                    "cursor-pointer border-b border-creo-gray-100 hover:bg-creo-gray-50 dark:border-[var(--creo-dashboard-border)] dark:hover:bg-[#1a1a1a]",
+                    openId === r.id && "bg-creo-purple-pale/40 dark:bg-creo-purple-pale/35"
                   )}
                   onClick={() => setOpenId(r.id)}
                 >
@@ -347,7 +547,7 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
                     <p className="font-medium text-creo-black dark:text-white">
                       {displayName(r)}
                     </p>
-                    <p className="text-creo-xs text-creo-gray-500 dark:text-[#a3a3a3]">
+                    <p className="text-creo-xs text-creo-gray-500 dark:text-creo-gray-500">
                       {r.email}
                     </p>
                   </td>
@@ -381,19 +581,75 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
             </tbody>
           </table>
         </Card>
+        {crmPagination &&
+        Math.ceil(crmPagination.total / crmPagination.pageSize) > 1 ? (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-creo-sm text-creo-gray-500">
+              Page {crmPagination.page} sur{" "}
+              {Math.max(
+                1,
+                Math.ceil(crmPagination.total / crmPagination.pageSize)
+              )}
+            </p>
+            <div className="flex gap-2">
+              <Link
+                href={`${contactsBasePath}${buildContactsQuery({
+                  q: crmFilters?.q,
+                  tag: crmFilters?.tag,
+                  sort: crmFilters?.sort,
+                  dir: crmFilters?.dir,
+                  page:
+                    crmPagination.page <= 1
+                      ? undefined
+                      : String(crmPagination.page - 1),
+                })}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className:
+                    crmPagination.page <= 1 ? "pointer-events-none opacity-40" : "",
+                })}
+                aria-disabled={crmPagination.page <= 1}
+              >
+                Précédent
+              </Link>
+              <Link
+                href={`${contactsBasePath}${buildContactsQuery({
+                  q: crmFilters?.q,
+                  tag: crmFilters?.tag,
+                  sort: crmFilters?.sort,
+                  dir: crmFilters?.dir,
+                  page: String(crmPagination.page + 1),
+                })}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className:
+                    crmPagination.page >=
+                    Math.ceil(crmPagination.total / crmPagination.pageSize)
+                      ? "pointer-events-none opacity-40"
+                      : "",
+                })}
+              >
+                Suivant
+              </Link>
+            </div>
+          </div>
+        ) : null}
+        </>
       )}
 
       <div
         className={cn(
-          "fixed inset-y-0 right-0 z-50 w-full max-w-md border-l border-creo-gray-200 bg-creo-white shadow-creo-modal transition-transform duration-200 dark:border-[#2a2a2a] dark:bg-[#141414]",
+          "fixed inset-y-0 right-0 z-50 w-full max-w-md border-l border-creo-gray-200 bg-creo-white shadow-creo-modal transition-transform duration-200 dark:border-[var(--creo-dashboard-border)] dark:bg-[var(--creo-surface-panel)]",
           openId ? "translate-x-0" : "translate-x-full"
         )}
       >
         {selected ? (
           <div className="flex h-full flex-col">
-            <div className="flex items-start justify-between border-b border-creo-gray-100 p-6 dark:border-[#2a2a2a]">
+            <div className="flex items-start justify-between border-b border-creo-gray-100 p-6 dark:border-[var(--creo-dashboard-border)]">
               <div className="flex gap-3">
-                <div className="flex size-12 items-center justify-center rounded-full bg-creo-purple-pale text-lg font-semibold text-creo-purple dark:bg-[#1f1f3a]">
+                <div className="flex size-12 items-center justify-center rounded-full bg-creo-purple-pale text-lg font-semibold text-creo-purple dark:bg-creo-info-pale">
                   {displayName(selected)
                     .split(" ")
                     .map((x) => x[0])
@@ -405,14 +661,14 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
                   <h2 className="text-creo-md font-semibold dark:text-white">
                     {displayName(selected)}
                   </h2>
-                  <p className="text-creo-sm text-creo-gray-500 dark:text-[#a3a3a3]">
+                  <p className="text-creo-sm text-creo-gray-500 dark:text-creo-gray-500">
                     {selected.email}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                className="rounded-md p-1 text-creo-gray-500 hover:bg-creo-gray-100 dark:hover:bg-[#2a2a2a]"
+                className="rounded-md p-1 text-creo-gray-500 hover:bg-creo-gray-100 dark:hover:bg-[var(--creo-gray-300)]"
                 onClick={() => setOpenId(null)}
                 aria-label="Fermer"
               >
@@ -468,10 +724,36 @@ export function ContactsView({ initialContacts }: ContactsViewProps) {
                 </p>
               </section>
             </div>
-            <div className="border-t border-creo-gray-100 p-4 dark:border-[#2a2a2a]">
-              <Button type="button" className="w-full" variant="outline" disabled>
-                Envoyer un email (bientôt)
+            <div className="space-y-2 border-t border-creo-gray-100 p-4 dark:border-[var(--creo-dashboard-border)]">
+              <a
+                href={`mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent(
+                  `Message — ${displayName(selected)}`
+                )}`}
+                className={buttonVariants({ variant: "outline", className: "inline-flex w-full justify-center" })}
+              >
+                Ouvrir l’e-mail (app par défaut)
+              </a>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30"
+                disabled={pending}
+                onClick={removeContact}
+              >
+                Supprimer ce contact
               </Button>
+              {contactActionError ? (
+                <p className="text-center text-creo-xs text-red-600 dark:text-red-400" role="alert">
+                  {contactActionError}
+                </p>
+              ) : null}
+              <p className="text-center text-creo-xs text-creo-gray-500">
+                Envois automatisés depuis CRÉO : voir{" "}
+                <a href="/dashboard/email-crm/tags" className="text-creo-purple underline">
+                  Tags CRM
+                </a>
+                .
+              </p>
             </div>
           </div>
         ) : null}

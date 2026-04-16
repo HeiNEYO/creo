@@ -1,5 +1,5 @@
-import { DashboardMainSkeleton } from "@/components/dashboard/dashboard-page-skeleton";
+import { BuilderLoadingSkeleton } from "@/components/builder/builder-loading-skeleton";
 
 export default function BuilderLoading() {
-  return <DashboardMainSkeleton />;
+  return <BuilderLoadingSkeleton />;
 }

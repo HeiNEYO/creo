@@ -1,36 +1,34 @@
 import { cn } from "@/lib/utils";
 
 type PageHeaderProps = {
-  title: string;
+  /** Conservé pour compatibilité ; non affiché. */
+  title?: string;
   description?: string;
   className?: string;
   action?: React.ReactNode;
+  /** Affiché à gauche lorsqu’il y a une action (ex. marque + boutons). */
+  leading?: React.ReactNode;
 };
 
-export function PageHeader({
-  title,
-  description,
-  className,
-  action,
-}: PageHeaderProps) {
+/**
+ * Barre d’actions optionnelle sous le header du shell. Titres / sous-titres de page ne sont plus
+ * affichés (la navigation latérale suffit comme repère).
+ */
+export function PageHeader({ className, action, leading }: PageHeaderProps) {
+  if (!action) {
+    return null;
+  }
+
   return (
     <div
       className={cn(
-        "mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between",
+        "mb-6 flex flex-col gap-3 sm:flex-row sm:items-center",
+        leading ? "sm:justify-between" : "sm:justify-end",
         className
       )}
     >
-      <div>
-        <h1 className="text-creo-2xl font-semibold text-[#202223] dark:text-white">
-          {title}
-        </h1>
-        {description ? (
-          <p className="mt-1 text-creo-base text-[#616161] dark:text-[#a3a3a3]">
-            {description}
-          </p>
-        ) : null}
-      </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
+      {leading ? <div className="shrink-0">{leading}</div> : null}
+      <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">{action}</div>
     </div>
   );
 }

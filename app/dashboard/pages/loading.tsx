@@ -1,5 +1,5 @@
-import { DashboardTableSkeleton } from "@/components/dashboard/dashboard-page-skeleton";
+import { SitePagesLoadingSkeleton } from "@/components/dashboard/pages/page-preview-skeleton";
 
 export default function PagesLoading() {
-  return <DashboardTableSkeleton rows={8} />;
+  return <SitePagesLoadingSkeleton rows={7} />;
 }

@@ -1,19 +1,37 @@
 "use client";
 
-import { LayoutTemplate, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  BookText,
+  GraduationCap,
+  LayoutTemplate,
+  PartyPopper,
+  ShoppingCart,
+  Sparkles,
+  TrendingUp,
+  Video,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 
 import { createPageServer } from "@/lib/pages/actions";
+import { PAGE_TYPE_CHOICES } from "@/lib/pages/page-types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
-const types = [
-  { id: "sales", label: "Page de vente", icon: LayoutTemplate },
-  { id: "landing", label: "Landing page", icon: LayoutTemplate },
-  { id: "custom", label: "Page libre", icon: Sparkles },
-];
+const ICONS: Record<string, typeof LayoutTemplate> = {
+  landing: LayoutTemplate,
+  sales: TrendingUp,
+  checkout: ShoppingCart,
+  upsell: Sparkles,
+  thankyou: PartyPopper,
+  webinar: Video,
+  blog: BookText,
+  membership: GraduationCap,
+  custom: BookOpen,
+};
 
 type NewPageDialogProps = {
   open: boolean;
@@ -23,7 +41,7 @@ type NewPageDialogProps = {
 export function NewPageDialog({ open, onClose }: NewPageDialogProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [selected, setSelected] = useState<string | null>("sales");
+  const [selected, setSelected] = useState<string | null>(PAGE_TYPE_CHOICES[0]?.createKey ?? "custom");
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -68,15 +86,21 @@ export function NewPageDialog({ open, onClose }: NewPageDialogProps) {
       />
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 w-full max-w-lg rounded-creo-xl bg-creo-white p-6 shadow-creo-modal"
+        className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-creo-xl bg-creo-white p-6 shadow-creo-modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="new-page-title"
       >
         <div className="flex items-start justify-between gap-4">
-          <h2 id="new-page-title" className="text-creo-lg font-semibold">
-            Créer une nouvelle page
-          </h2>
+          <div>
+            <h2 id="new-page-title" className="text-creo-lg font-semibold">
+              Nouvelle page
+            </h2>
+            <p className="mt-1 text-creo-sm text-creo-gray-500">
+              Le type pilote les règles et le panneau de réglages dans l’éditeur. Tu pars d’un canvas vide ; les
+              gabarits thématiques arriveront plus tard.
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -99,24 +123,30 @@ export function NewPageDialog({ open, onClose }: NewPageDialogProps) {
               disabled={pending}
             />
           </div>
-          <p className="text-creo-sm font-medium text-creo-gray-700">Type</p>
-          <div className="grid gap-2 sm:grid-cols-3">
-            {types.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                type="button"
-                disabled={pending}
-                onClick={() => setSelected(id)}
-                className={`rounded-creo-lg border p-3 text-left transition-colors ${
-                  selected === id
-                    ? "border-creo-purple bg-creo-purple-pale"
-                    : "border-creo-gray-200 hover:border-creo-gray-300"
-                }`}
-              >
-                <Icon className="size-4 text-creo-purple" />
-                <p className="mt-2 text-creo-sm font-medium">{label}</p>
-              </button>
-            ))}
+          <p className="text-creo-sm font-medium text-creo-gray-700">Type de page</p>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {PAGE_TYPE_CHOICES.map(({ createKey, label, description }) => {
+              const Icon = ICONS[createKey] ?? LayoutTemplate;
+              const active = selected === createKey;
+              return (
+                <button
+                  key={createKey}
+                  type="button"
+                  disabled={pending}
+                  onClick={() => setSelected(createKey)}
+                  className={cn(
+                    "rounded-creo-lg border p-4 text-left transition-colors",
+                    active
+                      ? "border-creo-purple bg-creo-purple-pale ring-2 ring-creo-purple/20"
+                      : "border-creo-gray-200 hover:border-creo-gray-300"
+                  )}
+                >
+                  <Icon className="size-5 text-creo-purple" aria-hidden />
+                  <p className="mt-2 text-creo-sm font-semibold text-creo-gray-900">{label}</p>
+                  <p className="mt-1 text-creo-xs leading-snug text-creo-gray-500">{description}</p>
+                </button>
+              );
+            })}
           </div>
           {error ? (
             <p className="text-creo-sm text-red-600" role="alert">
@@ -124,13 +154,8 @@ export function NewPageDialog({ open, onClose }: NewPageDialogProps) {
             </p>
           ) : null}
         </div>
-        <div className="mt-8 flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={pending}
-          >
+        <div className="mt-8 flex flex-wrap justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
             Annuler
           </Button>
           <Button type="submit" disabled={pending}>

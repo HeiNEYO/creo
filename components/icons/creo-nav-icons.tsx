@@ -1,52 +1,91 @@
-import type { LucideProps } from "lucide-react";
+import Image from "next/image";
+import type { ComponentType, SVGProps } from "react";
 import {
-  AppWindow,
-  BarChart3,
-  Bell,
-  Book,
-  BookOpen,
-  ChevronRight,
-  ClipboardList,
-  FileText,
-  Home,
-  LogOut,
-  Mail,
-  Menu,
-  Search,
-  Settings,
-  UserCircle,
-  Users,
-  X,
-} from "lucide-react";
-import type { ForwardRefExoticComponent, RefAttributes } from "react";
+  BookIcon,
+  ChevronRightIcon,
+  ExitIcon,
+  MenuIcon,
+  NotificationIcon,
+  PageIcon,
+  SearchIcon,
+  XIcon,
+} from "@shopify/polaris-icons";
 
 import { cn } from "@/lib/utils";
 
 type IconProps = { className?: string };
 
-type LucideComp = ForwardRefExoticComponent<
-  Omit<LucideProps, "ref"> & RefAttributes<SVGSVGElement>
->;
-
-/** Traits plus lisibles que le défaut Lucide (2) — icônes contour, intérieur vide */
-const NAV_STROKE = 2.75;
-const HEADER_STROKE = 2.75;
-const CHEVRON_STROKE = 2.75;
-
-const nav = "size-5 shrink-0";
+const nav = "size-[19px] shrink-0";
 const header = "size-5 shrink-0";
 
-function wrapLucide(
-  Icon: LucideComp,
-  sizeClass: string,
-  strokeWidth: number
+/** Icônes du rail : non sélectionné — couleur + opacité 80 % (les PNG : CreoNavRasterIcon reçoit la classe en dernier). */
+export const dashboardNavIconMutedClass =
+  "text-black opacity-80 dark:text-white";
+
+/** Texte des entrées du menu latéral (+0,2px sur 13px / 18px). */
+export const dashboardNavEntryTextClass =
+  "text-[calc(13px+0.2px)] leading-[calc(18px+0.2px)]";
+
+/** Sources raster navigation (PNG distant, même jeu que le thème clair). */
+const CREO_RASTER_HOME =
+  "https://img.icons8.com/?size=100&id=z6m63h25vYs2&format=png&color=000000";
+const CREO_RASTER_SITE =
+  "https://img.icons8.com/?size=100&id=7gXZp7fqAo1J&format=png&color=000000";
+const CREO_RASTER_COURSES =
+  "https://img.icons8.com/?size=100&id=1JChCru7DwZr&format=png&color=000000";
+const CREO_RASTER_CONTACTS =
+  "https://img.icons8.com/?size=100&id=lCYw1uasYgD5&format=png&color=000000";
+const CREO_RASTER_EMAIL =
+  "https://img.icons8.com/?size=100&id=6025lvBAJ0M6&format=png&color=000000";
+/** Intégrations — cube isométrique (Icons8) */
+const CREO_RASTER_INTEGRATIONS =
+  "https://img.icons8.com/?size=100&id=JB4P6J4ORU2v&format=png&color=000000";
+/** Analytics — Pulsar Line (Icons8), même famille que commandes / intégrations */
+const CREO_RASTER_ANALYTICS =
+  "https://img.icons8.com/?size=100&id=tTIl1sEbXudG&format=png&color=000000";
+/** Add Shopping Cart — Icons8 Pulsar Line (eLKhCNc6SMdl) */
+const CREO_RASTER_ORDERS =
+  "https://img.icons8.com/?size=100&id=eLKhCNc6SMdl&format=png&color=000000";
+const CREO_RASTER_SETTINGS =
+  "https://img.icons8.com/?size=100&id=UCX4DI82AU0H&format=png&color=000000";
+const CREO_RASTER_PROFILE =
+  "https://img.icons8.com/?size=100&id=15265&format=png&color=000000";
+/** Aide — bulle + ? (Icons8) */
+const CREO_RASTER_HELP =
+  "https://img.icons8.com/?size=100&id=NA8QqPrMsofO&format=png&color=000000";
+
+function CreoNavRasterIcon({ src, className }: IconProps & { src: string }) {
+  return (
+    <Image
+      src={src}
+      alt=""
+      width={19}
+      height={19}
+      className={cn(
+        nav,
+        "object-contain opacity-100 transition-[opacity,filter] duration-150",
+        /* Actif (clair) : teinte proche de #2563eb */
+        "group-data-[nav-active]:[filter:invert(37%)_sepia(98%)_saturate(2842%)_hue-rotate(211deg)_brightness(101%)_contrast(92%)]",
+        "dark:invert dark:brightness-110",
+        className
+      )}
+      aria-hidden
+    />
+  );
+}
+
+function wrap(
+  Icon: ComponentType<SVGProps<SVGSVGElement>>,
+  sizeClass: string
 ) {
-  return function CreoNavIcon({ className }: IconProps) {
+  return function PolarisNavIcon({ className }: IconProps) {
     return (
       <Icon
-        className={cn(sizeClass, className)}
-        strokeWidth={strokeWidth}
-        fill="none"
+        className={cn(
+          sizeClass,
+          "text-current [&_path]:fill-current [&_path]:stroke-none",
+          className
+        )}
         aria-hidden
         focusable={false}
       />
@@ -54,53 +93,74 @@ function wrapLucide(
   };
 }
 
-/** Cockpit */
-export const NavIconCockpit = wrapLucide(Home, nav, NAV_STROKE);
+/** Accueil (dashboard) */
+export function NavIconCockpit({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_HOME} className={className} />;
+}
 
-/** Questionnaire */
-export const NavIconQuestionnaire = wrapLucide(ClipboardList, nav, NAV_STROKE);
-
-/** Pages */
-export const NavIconPages = wrapLucide(FileText, nav, NAV_STROKE);
+/** Site (pages publiées / builder) */
+export function NavIconSite({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_SITE} className={className} />;
+}
 
 /** Formations */
-export const NavIconCourses = wrapLucide(BookOpen, nav, NAV_STROKE);
+export function NavIconCourses({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_COURSES} className={className} />;
+}
 
 /** Contacts */
-export const NavIconContacts = wrapLucide(Users, nav, NAV_STROKE);
+export function NavIconContacts({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_CONTACTS} className={className} />;
+}
 
 /** Emails */
-export const NavIconEmails = wrapLucide(Mail, nav, NAV_STROKE);
+export function NavIconEmails({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_EMAIL} className={className} />;
+}
 
 /** Intégrations */
-export const NavIconIntegrations = wrapLucide(AppWindow, nav, NAV_STROKE);
+export function NavIconIntegrations({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_INTEGRATIONS} className={className} />;
+}
 
 /** Analytics */
-export const NavIconAnalytics = wrapLucide(BarChart3, nav, NAV_STROKE);
+export function NavIconAnalytics({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_ANALYTICS} className={className} />;
+}
+
+/** Commandes */
+export function NavIconOrders({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_ORDERS} className={className} />;
+}
 
 /** Paramètres */
-export const NavIconSettings = wrapLucide(Settings, nav, NAV_STROKE);
+export function NavIconSettings({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_SETTINGS} className={className} />;
+}
 
-/** Espace membre */
-export const NavIconLearn = wrapLucide(Book, nav, NAV_STROKE);
+/** Espace membre / lecture */
+export const NavIconLearn = wrap(BookIcon, nav);
+
+/** Aide / documentation (lien vers /aides) */
+export function NavIconHelp({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_HELP} className={className} />;
+}
 
 /** Section rail */
-export const NavIconChevronSection = wrapLucide(
-  ChevronRight,
-  "size-4 shrink-0",
-  CHEVRON_STROKE
-);
+export const NavIconChevronSection = wrap(ChevronRightIcon, "size-3.5 shrink-0");
 
 /** Résultats pages (palette) */
-export const NavIconDocument = wrapLucide(FileText, "size-[18px] shrink-0", NAV_STROKE);
+export const NavIconDocument = wrap(PageIcon, "size-4 shrink-0");
 
-export const CreoIconSearch = wrapLucide(Search, header, HEADER_STROKE);
-export const CreoIconMenu = wrapLucide(Menu, header, HEADER_STROKE);
-export const CreoIconClose = wrapLucide(X, header, HEADER_STROKE);
-export const CreoIconBell = wrapLucide(Bell, header, HEADER_STROKE);
+export const CreoIconSearch = wrap(SearchIcon, header);
+export const CreoIconMenu = wrap(MenuIcon, header);
+export const CreoIconClose = wrap(XIcon, header);
+export const CreoIconBell = wrap(NotificationIcon, header);
 
-/** Profil (sidebar) */
-export const NavIconProfile = wrapLucide(UserCircle, nav, NAV_STROKE);
+/** Mon profil */
+export function NavIconProfile({ className }: IconProps) {
+  return <CreoNavRasterIcon src={CREO_RASTER_PROFILE} className={className} />;
+}
 
-/** Déconnexion */
-export const NavIconExit = wrapLucide(LogOut, nav, NAV_STROKE);
+/** Déconnexion (bas du rail) */
+export const NavIconExit = wrap(ExitIcon, nav);

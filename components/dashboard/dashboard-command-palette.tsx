@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 import {
-  dashboardNavItems,
-  learnNavItem,
+  flattenDashboardNavForPalette,
   resolveDashboardIcon,
 } from "@/components/dashboard/nav-config";
 import { CreoIconSearch } from "@/components/icons/creo-nav-icons";
@@ -83,23 +82,17 @@ export function DashboardCommandPalette({
   const items = useMemo<PaletteItem[]>(() => {
     const pageList = remotePages ?? [];
     const nav: PaletteItem[] = [
-      ...dashboardNavItems.map((i) => ({
-        id: `nav-${i.href}`,
+      ...flattenDashboardNavForPalette().map((i) => ({
+        id: i.id,
         label: i.label,
         href: i.href,
-        group: "Navigation",
+        group: i.group,
       })),
-      {
-        id: `nav-${learnNavItem.href}`,
-        label: learnNavItem.label,
-        href: learnNavItem.href,
-        group: "Navigation",
-      },
       ...pageList.map((p) => ({
         id: `page-${p.id}`,
         label: p.title?.trim() ? p.title : "Page sans titre",
         href: `/builder/${p.id}`,
-        group: "Pages",
+        group: "Site",
       })),
     ];
     return nav;
@@ -155,31 +148,31 @@ export function DashboardCommandPalette({
         aria-label="Fermer"
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative w-full max-w-lg overflow-hidden rounded-xl border border-[#e3e5e8] bg-white shadow-xl dark:border-[#2a2a2a] dark:bg-[#141414]">
-        <div className="flex items-center gap-2 border-b border-[#e3e5e8] px-3 dark:border-[#2a2a2a]">
-          <CreoIconSearch className="size-4 text-[#616161] dark:text-[#a3a3a3]" />
+      <div className="relative w-full max-w-lg overflow-hidden rounded-xl border border-[#e3e5e8] bg-white shadow-xl dark:border dark:border-white/[0.1] dark:bg-[var(--creo-surface-panel)] dark:shadow-none">
+        <div className="flex items-center gap-2 border-b border-[#e3e5e8] px-3 dark:border-white/[0.08]">
+          <CreoIconSearch className="size-4 text-[#616161] dark:text-creo-gray-500" />
           <input
             ref={inputRef}
             type="search"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Une page, une section…"
-            className="h-12 w-full bg-transparent text-sm text-[#202223] outline-none placeholder:text-[#8c9196] dark:text-white dark:placeholder:text-[#737373]"
+            className="h-12 w-full bg-transparent text-sm text-[#202223] outline-none placeholder:text-[#8c9196] dark:text-white dark:placeholder:text-creo-gray-400"
           />
           {pagesLoading ? (
             <Loader2
-              className="size-4 shrink-0 animate-spin text-[#616161] dark:text-[#a3a3a3]"
+              className="size-4 shrink-0 animate-spin text-[#616161] dark:text-creo-gray-500"
               aria-hidden
             />
           ) : (
-            <kbd className="hidden shrink-0 rounded border border-[#e3e5e8] bg-[#f6f6f7] px-1.5 py-0.5 font-mono text-[10px] text-[#616161] dark:border-[#2a2a2a] dark:bg-[#1a1a1a] dark:text-[#a3a3a3] sm:inline">
+            <kbd className="hidden shrink-0 rounded border border-[#e3e5e8] bg-[#f6f6f7] px-1.5 py-0.5 font-mono text-[10px] text-[#616161] dark:border-white/[0.1] dark:bg-[var(--creo-surface-raised)] dark:text-creo-gray-500 sm:inline">
               Esc
             </kbd>
           )}
         </div>
         <ul className="max-h-[min(50vh,320px)] overflow-y-auto p-2">
           {filtered.length === 0 ? (
-            <li className="px-3 py-8 text-center text-sm text-[#616161] dark:text-[#a3a3a3]">
+            <li className="px-3 py-8 text-center text-sm text-[#616161] dark:text-creo-gray-500">
               {pagesLoading && !q.trim()
                 ? "Chargement des pages…"
                 : "Aucun résultat."}
@@ -194,12 +187,12 @@ export function DashboardCommandPalette({
                   onClick={() => go(item.href)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors",
-                    "text-[#202223] hover:bg-[#f6f6f7] dark:text-white dark:hover:bg-[#1f1f1f]"
+                    "text-[#202223] hover:bg-[#f6f6f7] dark:text-white dark:hover:bg-[var(--creo-surface-raised)]"
                   )}
                 >
-                  <ItemIcon className="text-[#616161] dark:text-[#a3a3a3]" />
+                  <ItemIcon className="text-[#616161] dark:text-creo-gray-500" />
                   <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                  <span className="shrink-0 text-[11px] text-[#8c9196] dark:text-[#737373]">
+                  <span className="shrink-0 text-[11px] text-[#8c9196] dark:text-creo-gray-400">
                     {item.group}
                   </span>
                 </button>
@@ -208,9 +201,9 @@ export function DashboardCommandPalette({
             })
           )}
         </ul>
-        <p className="border-t border-[#e3e5e8] px-3 py-2 text-[11px] text-[#8c9196] dark:border-[#2a2a2a] dark:text-[#737373]">
-          <kbd className="rounded bg-[#f6f6f7] px-1 dark:bg-[#1a1a1a]">⌘</kbd>{" "}
-          + <kbd className="rounded bg-[#f6f6f7] px-1 dark:bg-[#1a1a1a]">K</kbd>{" "}
+        <p className="border-t border-[#e3e5e8] px-3 py-2 text-[11px] text-[#8c9196] dark:border-white/[0.08] dark:text-creo-gray-400">
+          <kbd className="rounded bg-[#f6f6f7] px-1 dark:bg-[var(--creo-surface-raised)]">⌘</kbd>{" "}
+          + <kbd className="rounded bg-[#f6f6f7] px-1 dark:bg-[var(--creo-surface-raised)]">K</kbd>{" "}
           pour ouvrir depuis n’importe quelle page du tableau de bord.
         </p>
       </div>

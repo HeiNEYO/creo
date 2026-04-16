@@ -1,36 +1,28 @@
 @echo off
-setlocal EnableExtensions
+setlocal
 cd /d "%~dp0"
 
-echo [1/3] npm run build...
-call npm run build
-if errorlevel 1 exit /b 1
-
-echo [2/3] Git add / commit...
-git add -A
-git diff --cached --quiet
-if errorlevel 1 (
-  if "%~1"=="" (
-    echo.
-    echo Aucun message de commit. Usage:
-    echo   deploy.bat "ton message de commit"
-    echo Les modifications restent en staging ^(git add -A deja fait^).
-    exit /b 1
-  )
-  git commit -m "%~1"
-  if errorlevel 1 exit /b 1
-) else (
-  echo Rien a committer ^(working tree propre^).
+if not exist ".vercel\project.json" (
+  echo ERREUR: Ce dossier n'est pas lie a un projet Vercel.
+  echo Lance depuis la racine du repo :  npx vercel link
+  echo ^(Le dossier .vercel est local et ne part pas sur Git — normal.^)
+  exit /b 1
 )
 
-echo [3/3] git push...
-git push
-if errorlevel 1 exit /b 1
+echo [CREO] Build local ^(obligatoire apres toute modif design / UI^)...
+call npm run build
+if errorlevel 1 (
+  echo [CREO] Echec du build.
+  exit /b 1
+)
 
 echo.
-echo --- Deploiement auto Vercel ---
-echo Sur https://vercel.com : ton projet ^> Settings ^> Git ^> Connect Repository
-echo Choisis github.com/HeiNEYO/creo et branche Production = main.
-echo Chaque "git push" sur main declenchera alors un deploiement automatique.
-echo ^(Sans cette etape, seul "deploy-vercel.bat" ou la CLI deploie.^)
-endlocal
+echo [CREO] Deploiement Vercel production...
+call npx vercel --prod --yes
+set EXIT=%ERRORLEVEL%
+if %EXIT% neq 0 (
+  echo [CREO] Echec du deploiement ^(code %EXIT%^).
+  exit /b %EXIT%
+)
+echo [CREO] Deploiement termine.
+exit /b 0

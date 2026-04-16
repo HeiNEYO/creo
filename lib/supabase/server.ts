@@ -48,5 +48,13 @@ function createSupabaseServerClientInner() {
   });
 }
 
-/** Client Supabase pour les Server Components, Server Actions et Route Handlers. */
+/** Client Supabase pour les Server Components et Server Actions (une instance par requête RSC). */
 export const createClient = cache(createSupabaseServerClientInner);
+
+/**
+ * Client Supabase pour les Route Handlers (fichiers `route.ts` sous `app/api`).
+ * Ne pas utiliser createClient() basé sur cache React dans les API : risque d’erreurs 500.
+ */
+export function createRouteHandlerClient() {
+  return createSupabaseServerClientInner();
+}

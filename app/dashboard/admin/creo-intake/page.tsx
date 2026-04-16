@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 
-import { PageHeader } from "@/components/dashboard/page-header";
 import { Card } from "@/components/ui/card";
 import { isCreoAdminEmail } from "@/lib/admin/is-creo-admin";
+import { ADMIN_INTAKE_PROFILES_LIMIT } from "@/lib/config/limits";
 import { createServiceRoleClient } from "@/lib/supabase/service";
 import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
 
@@ -31,15 +31,11 @@ export default async function CreoIntakeAdminPage() {
     .from("profiles")
     .select("id, full_name, signup_intake, signup_intake_completed_at, created_at")
     .order("created_at", { ascending: false })
-    .limit(500);
+    .limit(ADMIN_INTAKE_PROFILES_LIMIT);
 
   if (pErr) {
     return (
       <>
-        <PageHeader
-          title="Admin — questionnaires"
-          description="Erreur lecture profils"
-        />
         <Card className="p-6 text-creo-sm text-red-600">{pErr.message}</Card>
       </>
     );
@@ -64,10 +60,6 @@ export default async function CreoIntakeAdminPage() {
 
   return (
     <>
-      <PageHeader
-        title="Admin CRÉO — données questionnaire"
-        description="Profils et champ signup_intake (service role). Non visible pour les autres utilisateurs."
-      />
       <Card className="overflow-x-auto p-0">
         <table className="w-full text-left text-creo-sm">
           <thead className="border-b border-creo-gray-200 bg-creo-gray-50 text-creo-xs uppercase tracking-wide text-creo-gray-500 dark:border-border dark:bg-muted/40">

@@ -7,7 +7,6 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { updateProfileServer } from "@/lib/profile/actions";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -141,11 +140,11 @@ export function ProfileForm({
   }
 
   return (
-    <Card className="space-y-6 p-6">
+    <div className="space-y-6">
       <div>
         <h2 className="text-creo-md font-semibold">Identité</h2>
         <p className="mt-1 text-creo-sm text-creo-gray-500">
-          Photo affichée dans l’en-tête du tableau de bord et sur cette page.
+          Photo affichée dans le menu latéral du tableau de bord.
         </p>
       </div>
       <form onSubmit={onSubmit} className="space-y-6">
@@ -269,6 +268,6 @@ export function ProfileForm({
           {pending ? "Enregistrement…" : "Enregistrer"}
         </Button>
       </form>
-    </Card>
+    </div>
   );
 }

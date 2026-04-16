@@ -14,10 +14,11 @@ const Card = React.forwardRef<
     data-creo-card=""
     data-interactive={interactive ? "" : undefined}
     className={cn(
-      "rounded-creo-lg border border-creo-gray-200 bg-creo-white p-5 text-creo-black shadow-none sm:p-6",
-      "dark:border-border dark:bg-card dark:text-card-foreground",
+      "rounded-creo-lg border border-creo-gray-200 bg-creo-white p-5 text-creo-black sm:p-6",
+      "shadow-[var(--creo-shadow-card-rest)] dark:shadow-none",
+      "dark:rounded-creo-lg dark:border dark:border-border dark:bg-card dark:text-card-foreground",
       interactive &&
-        "cursor-pointer transition-all duration-200 hover:border-creo-gray-300 hover:shadow-creo-card dark:hover:border-white/12",
+        "cursor-pointer transition-all duration-200 hover:border-creo-gray-300 hover:shadow-[var(--creo-shadow-card-hover-light)] dark:hover:border-white/15 dark:hover:shadow-none",
       className
     )}
     {...props}

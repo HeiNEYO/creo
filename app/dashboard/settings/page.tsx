@@ -1,27 +1,30 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
-import { PageHeader } from "@/components/dashboard/page-header";
+import { resolveSettingsSectionId } from "@/components/dashboard/settings/settings-sections-config";
+import { PaymentGatewaysSection } from "@/components/dashboard/settings/payment-gateways-section";
+import { PlatformSubscriptionSection } from "@/components/dashboard/settings/platform-subscription-section";
+import { WorkspaceDeleteDangerZone } from "@/components/dashboard/settings/workspace-delete-danger-zone";
+import { WorkspaceDomainPrefsForm } from "@/components/dashboard/settings/workspace-domain-prefs-form";
 import { WorkspaceGeneralForm } from "@/components/dashboard/settings/workspace-general-form";
+import {
+  WorkspaceTeamInvitesPanel,
+  type PendingInviteRow,
+} from "@/components/dashboard/settings/workspace-team-invites-panel";
+import { WorkspaceTeamList, type WorkspaceMemberRow } from "@/components/dashboard/settings/workspace-team-list";
+import { WorkspaceSiteBrandForm } from "@/components/dashboard/settings/workspace-site-brand-form";
+import { AccountSignOutSection } from "@/components/dashboard/profile/account-sign-out-section";
+import { ProfileForm } from "@/components/dashboard/profile/profile-form";
 import { ThemeAppearanceSettings } from "@/components/settings/theme-appearance-settings";
-import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  isPlatformSubscriptionStripeConfigured,
+  missingPlatformStripePriceEnvKeys,
+} from "@/lib/stripe/platform-subscription-prices";
 import { getWorkspaceContext } from "@/lib/workspaces/get-workspace-context";
 
 export const dynamic = "force-dynamic";
-
-const sections = [
-  { id: "general", label: "Général" },
-  { id: "appearance", label: "Apparence" },
-  { id: "account", label: "Mon compte" },
-  { id: "billing", label: "Facturation" },
-  { id: "domain", label: "Domaine" },
-  { id: "team", label: "Équipe" },
-  { id: "danger", label: "Zone de danger" },
-];
 
 const planLabels: Record<string, string> = {
   starter: "Starter",
@@ -29,6 +32,25 @@ const planLabels: Record<string, string> = {
   pro: "Pro",
   agency: "Agency",
 };
+
+function readExtras(settings: unknown): {
+  favicon_url: string;
+  public_site_title: string;
+  custom_domain_desired: string;
+  paypal_email: string;
+} {
+  const o =
+    settings && typeof settings === "object" && !Array.isArray(settings)
+      ? (settings as Record<string, unknown>)
+      : {};
+  const s = (k: string) => (typeof o[k] === "string" ? (o[k] as string) : "");
+  return {
+    favicon_url: s("favicon_url"),
+    public_site_title: s("public_site_title"),
+    custom_domain_desired: s("custom_domain_desired"),
+    paypal_email: s("paypal_email"),
+  };
+}
 
 export default async function SettingsPage({
   searchParams,
@@ -40,148 +62,343 @@ export default async function SettingsPage({
     redirect("/login");
   }
 
-  const section =
+  const rawSection =
     typeof searchParams.section === "string"
       ? searchParams.section
-      : "general";
+      : undefined;
+  const section = resolveSettingsSectionId(rawSection);
 
   const { data: workspace } = workspaceId
     ? await supabase
         .from("workspaces")
-        .select("name, slug, plan")
+        .select(
+          "name, slug, plan, owner_id, settings, stripe_connect_account_id, stripe_connect_charges_enabled, stripe_customer_id"
+        )
         .eq("id", workspaceId)
         .maybeSingle()
     : { data: null };
 
+  const extras = readExtras(workspace?.settings);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ?? "";
+  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN?.trim() ?? "";
+  const publicPathBase = workspace?.slug
+    ? `${appUrl || "https://…"}/p/${workspace.slug}`
+    : "";
+  const subdomainPreview =
+    rootDomain && workspace?.slug
+      ? `https://${workspace.slug}.${rootDomain}`
+      : null;
+
+  const connectOAuthClientIdConfigured = !!process.env.NEXT_PUBLIC_STRIPE_CONNECT_CLIENT_ID?.trim();
+  const stripeSecretConfigured = !!process.env.STRIPE_SECRET_KEY?.trim();
+  const appUrlConfigured = !!process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const platformStripePricesConfigured = isPlatformSubscriptionStripeConfigured();
+  const missingPlatformStripeEnvKeys = missingPlatformStripePriceEnvKeys();
+  const platformPlan = typeof workspace?.plan === "string" ? workspace.plan : "starter";
+  const stripeCustomerId =
+    (workspace?.stripe_customer_id as string | null | undefined)?.trim() || null;
+
+  let profileForAccount: { full_name: string | null; avatar_url: string | null } | null = null;
+  if (section === "account") {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle();
+    profileForAccount = prof;
+  }
+
+  let teamMembers: WorkspaceMemberRow[] = [];
+  let teamListError: string | null = null;
+  let canInviteTeam = false;
+  let viewerTeamRole: "owner" | "admin" | "member" = "member";
+  let pendingInvites: PendingInviteRow[] = [];
+  if (section === "team" && workspaceId) {
+    const { data: mem } = await supabase
+      .from("workspace_members")
+      .select("role")
+      .eq("workspace_id", workspaceId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    canInviteTeam = mem?.role === "owner" || mem?.role === "admin";
+    if (mem?.role === "owner" || mem?.role === "admin" || mem?.role === "member") {
+      viewerTeamRole = mem.role;
+    }
+
+    const { data: invData } = await supabase
+      .from("workspace_invites")
+      .select("id, email, role, created_at, expires_at")
+      .eq("workspace_id", workspaceId)
+      .is("accepted_at", null)
+      .order("created_at", { ascending: false });
+
+    if (Array.isArray(invData)) {
+      pendingInvites = invData as PendingInviteRow[];
+    }
+
+    const { data, error } = await supabase.rpc("list_workspace_members", {
+      p_workspace_id: workspaceId,
+    });
+    if (error) {
+      teamListError = error.message;
+    } else if (Array.isArray(data)) {
+      teamMembers = data as WorkspaceMemberRow[];
+    }
+  }
+
   return (
     <>
-      <PageHeader
-        title="Paramètres"
-        description="Workspace, facturation, domaine, équipe"
-      />
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        <nav
-          className="sticky top-0 z-10 flex shrink-0 flex-row gap-2 overflow-x-auto bg-white pb-1 pt-0.5 dark:bg-[#141414] lg:w-48 lg:flex-col lg:gap-1 lg:self-start lg:overflow-x-visible lg:pb-0 lg:pt-0"
-          aria-label="Sections des paramètres"
-        >
-          {sections.map((s) => (
-            <a
-              key={s.id}
-              href={`/dashboard/settings?section=${s.id}`}
-              className={`whitespace-nowrap rounded-none px-3 py-2 text-creo-sm font-medium lg:w-full ${
-                section === s.id
-                  ? "bg-creo-purple-pale text-creo-purple"
-                  : "text-creo-gray-600 hover:bg-creo-gray-100 dark:hover:bg-white/[0.06]"
-              }`}
-            >
-              {s.label}
-            </a>
-          ))}
-        </nav>
-        <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-col gap-8">
+        <div className="min-w-0 w-full space-y-6">
           {section === "general" && (
-            <Card className="space-y-4 p-6">
+            <div className="max-w-3xl space-y-4">
               <h2 className="text-creo-md font-semibold">Général</h2>
+              <p className="text-creo-sm text-creo-gray-500">
+                Identité interne du workspace (nom + slug utilisés dans les URLs publiques{" "}
+                <code className="text-creo-xs">/p/…</code>).
+              </p>
               {!workspaceId || !workspace ? (
                 <p className="text-creo-sm text-creo-gray-500">
-                  Workspace introuvable.{" "}
+                  Aucun workspace associé à ce compte (ou migration Supabase incomplète : fonction{" "}
+                  <code className="text-creo-xs">ensure_default_workspace</code>).{" "}
                   <Link href="/login" className="text-creo-purple underline">
                     Reconnecte-toi
-                  </Link>
-                  .
+                  </Link>{" "}
+                  pour relancer la création automatique, ou applique les migrations dans le SQL Editor
+                  Supabase.
                 </p>
               ) : (
-                <>
-                  <WorkspaceGeneralForm
-                    initialName={workspace.name}
-                    initialSlug={workspace.slug}
-                  />
-                  <p className="border-t border-creo-gray-100 pt-4 text-creo-xs text-creo-gray-500 dark:border-border">
-                    Devise boutique / Stripe : prochaine étape (pas encore stockée
-                    sur le workspace).
-                  </p>
-                </>
+                <WorkspaceGeneralForm
+                  initialName={workspace.name}
+                  initialSlug={workspace.slug}
+                />
               )}
-            </Card>
+            </div>
           )}
-          {section === "appearance" && (
-            <Card className="space-y-4 p-6">
-              <h2 className="text-creo-md font-semibold">Apparence</h2>
-              <ThemeAppearanceSettings />
-            </Card>
-          )}
-          {section === "account" && (
-            <Card className="space-y-4 p-6">
-              <h2 className="text-creo-md font-semibold">Mon compte</h2>
+
+          {section === "site-brand" && (
+            <div className="max-w-3xl space-y-4">
+              <h2 className="text-creo-md font-semibold">Site & marque</h2>
               <p className="text-creo-sm text-creo-gray-500">
-                Photo et nom :{" "}
-                <Link href="/dashboard/profile" className="text-creo-purple underline">
-                  Mon profil
+                Éléments visibles côté visiteurs (favicon, titre). Distinct du{" "}
+                <Link href="/dashboard/settings?section=domain-dns" className="text-creo-purple underline">
+                  domaine & DNS
                 </Link>
                 .
               </p>
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input
-                  type="email"
-                  readOnly
-                  defaultValue={user.email ?? ""}
-                  className="bg-creo-gray-50 dark:bg-muted/40"
+              {!workspaceId || !workspace ? (
+                <p className="text-creo-sm text-creo-gray-500">Workspace introuvable.</p>
+              ) : (
+                <WorkspaceSiteBrandForm
+                  initialFaviconUrl={extras.favicon_url}
+                  initialPublicSiteTitle={extras.public_site_title}
                 />
+              )}
+            </div>
+          )}
+
+          {section === "domain-dns" && (
+            <div className="space-y-6">
+              <div className="max-w-3xl space-y-4">
+                <h2 className="text-creo-md font-semibold">URLs publiques actuelles</h2>
+                <p className="text-creo-sm text-creo-gray-500">
+                  Tant qu’un domaine personnalisé n’est pas vérifié, les pages utilisent l’URL de la plateforme.
+                </p>
+                <ul className="space-y-3 text-creo-sm">
+                  <li>
+                    <span className="font-medium text-creo-gray-800 dark:text-foreground">
+                      Chemin sur CRÉO
+                    </span>
+                    <div className="mt-1 break-all rounded-md bg-creo-gray-50 px-3 py-2 font-mono text-creo-xs text-creo-gray-700 dark:bg-white/5 dark:text-creo-gray-300">
+                      {publicPathBase || "—"}/{"{slug-page}"}
+                    </div>
+                  </li>
+                  {subdomainPreview ? (
+                    <li>
+                      <span className="font-medium text-creo-gray-800 dark:text-foreground">
+                        Sous-domaine (si <code className="text-creo-xs">NEXT_PUBLIC_ROOT_DOMAIN</code> est
+                        configuré)
+                      </span>
+                      <div className="mt-1 break-all rounded-md bg-creo-gray-50 px-3 py-2 font-mono text-creo-xs text-creo-gray-700 dark:bg-white/5 dark:text-creo-gray-300">
+                        {subdomainPreview}/ → page <code className="text-creo-xs">accueil</code>
+                      </div>
+                    </li>
+                  ) : (
+                    <li className="text-creo-xs text-creo-gray-500">
+                      Sous-domaines non actifs : définis <code>NEXT_PUBLIC_ROOT_DOMAIN</code> sur l’hébergeur
+                      (ex. Vercel) + DNS wildcard <code>*.tondomaine.com</code> vers l’app.
+                    </li>
+                  )}
+                </ul>
               </div>
-              <Link
-                href="/forgot-password"
-                className={buttonVariants({ variant: "outline" })}
-              >
-                Changer le mot de passe
-              </Link>
-            </Card>
+
+              <div className="max-w-3xl space-y-4">
+                <h2 className="text-creo-md font-semibold">Domaine personnalisé & DNS</h2>
+                <p className="text-creo-sm text-creo-gray-500">
+                  Objectif : pointer ton propre nom de domaine vers ton site CRÉO. Étapes typiques (à automatiser
+                  ensuite) :
+                </p>
+                <ol className="list-decimal space-y-2 pl-5 text-creo-sm text-creo-gray-600 dark:text-creo-gray-400">
+                  <li>
+                    Choisis un nom (souvent un sous-domaine, ex.{" "}
+                    <code className="text-creo-xs">boutique.tondomaine.com</code>).
+                  </li>
+                  <li>
+                    Chez ton registrar, crée un enregistrement <strong>CNAME</strong> vers la cible indiquée par
+                    ton hébergeur (ex. Vercel : <code className="text-creo-xs">cname.vercel-dns.com</code> ou la
+                    valeur du projet).
+                  </li>
+                  <li>
+                    Pour la racine du domaine (<code className="text-creo-xs">@</code>), utilise les enregistrements
+                    A / ALIAS selon la doc Vercel ou un redirect vers le www.
+                  </li>
+                  <li>Une fois le DNS propagé, la plateforme pourra vérifier le domaine (fonction à venir).</li>
+                </ol>
+                {!workspaceId || !workspace ? (
+                  <p className="text-creo-sm text-creo-gray-500">Workspace introuvable.</p>
+                ) : (
+                  <div className="border-t border-creo-gray-100 pt-6 dark:border-border">
+                    <h3 className="mb-3 text-creo-sm font-semibold">Enregistrer ton objectif de domaine</h3>
+                    <WorkspaceDomainPrefsForm
+                      initialCustomDomainDesired={extras.custom_domain_desired}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
           )}
-          {section === "billing" && (
-            <Card className="space-y-4 p-6">
-              <h2 className="text-creo-md font-semibold">Facturation</h2>
-              <p className="text-creo-sm text-creo-gray-500">
-                Plan actuel :{" "}
-                <strong>
-                  {workspace?.plan
-                    ? (planLabels[workspace.plan] ?? workspace.plan)
-                    : "—"}
-                </strong>{" "}
-                — intégration Stripe à venir.
-              </p>
-            </Card>
+
+          {section === "payment-gateways" && (
+            <Suspense
+              fallback={
+                <p className="text-center text-creo-sm text-creo-gray-500">Chargement…</p>
+              }
+            >
+              <PaymentGatewaysSection
+                platformPlan={platformPlan}
+                connectOAuthClientIdConfigured={connectOAuthClientIdConfigured}
+                stripeSecretConfigured={stripeSecretConfigured}
+                appUrlConfigured={appUrlConfigured}
+                platformStripePricesConfigured={platformStripePricesConfigured}
+                initialStripeConnectAccountId={
+                  (workspace?.stripe_connect_account_id as string | null | undefined) ?? null
+                }
+                initialStripeConnectChargesEnabled={
+                  (workspace?.stripe_connect_charges_enabled as boolean | undefined) ?? false
+                }
+                paypalEmail={extras.paypal_email}
+                workspaceReady={!!workspaceId && !!workspace}
+              />
+            </Suspense>
           )}
-          {section === "domain" && (
-            <Card className="space-y-4 p-6">
-              <h2 className="text-creo-md font-semibold">Domaine personnalisé</h2>
-              <ol className="list-decimal space-y-2 pl-5 text-creo-sm text-creo-gray-600">
-                <li>Entre ton domaine</li>
-                <li>Ajoute les enregistrements DNS indiqués</li>
-                <li>Vérifie le statut ici</li>
-              </ol>
-            </Card>
+
+          {section === "subscription-creo" && (
+            <Suspense
+              fallback={
+                <p className="text-center text-creo-sm text-creo-gray-500">Chargement…</p>
+              }
+            >
+              <PlatformSubscriptionSection
+                initialStripeCustomerId={stripeCustomerId}
+                platformStripePricesConfigured={platformStripePricesConfigured}
+                missingPlatformStripeEnvKeys={missingPlatformStripeEnvKeys}
+                planLabel={
+                  workspace?.plan ? (planLabels[workspace.plan] ?? workspace.plan) : "—"
+                }
+              />
+            </Suspense>
+          )}
+
+          {section === "appearance" && (
+            <div className="max-w-3xl space-y-4">
+              <h2 className="text-creo-md font-semibold">Apparence</h2>
+              <ThemeAppearanceSettings />
+            </div>
+          )}
+          {section === "account" && (
+            <div className="max-w-3xl space-y-8">
+              <ProfileForm
+                userId={user.id}
+                initialFullName={profileForAccount?.full_name ?? ""}
+                initialAvatarUrl={profileForAccount?.avatar_url ?? ""}
+                userEmail={user.email ?? ""}
+              />
+              <div className="space-y-3 border-t border-border pt-8">
+                <h3 className="text-creo-md font-semibold">Mot de passe</h3>
+                <p className="text-creo-sm text-muted-foreground">
+                  Réinitialisation sécurisée par e-mail.
+                </p>
+                <Link
+                  href="/forgot-password"
+                  className={buttonVariants({ variant: "outline" })}
+                >
+                  Changer le mot de passe
+                </Link>
+              </div>
+              <AccountSignOutSection />
+            </div>
           )}
           {section === "team" && (
-            <Card className="space-y-4 p-6">
+            <div className="max-w-3xl space-y-4">
               <h2 className="text-creo-md font-semibold">Équipe</h2>
               <p className="text-creo-sm text-creo-gray-500">
-                Invitations par email — bientôt disponible.
+                Invite des collègues par e-mail, consulte les invitations en attente et la liste des
+                membres.
               </p>
-            </Card>
+              {!workspaceId || !workspace ? (
+                <p className="text-creo-sm text-creo-gray-500">Workspace introuvable.</p>
+              ) : (
+                <>
+                  <WorkspaceTeamInvitesPanel
+                    canInvite={canInviteTeam}
+                    initialInvites={pendingInvites}
+                  />
+                  <div>
+                    <h3 className="text-creo-sm font-semibold text-foreground">Membres actuels</h3>
+                    {teamListError ? (
+                      <div className="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 px-4 py-3 text-creo-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-100">
+                        <p className="font-medium">Liste des membres indisponible</p>
+                        <p className="mt-1 text-creo-xs opacity-90">
+                          {teamListError.includes("list_workspace_members")
+                            ? "Applique la migration Supabase « list_workspace_members » (fichier supabase/migrations/20260407120000_list_workspace_members_rpc.sql) puis réessaie."
+                            : teamListError}
+                        </p>
+                      </div>
+                    ) : teamMembers.length === 0 ? (
+                      <p className="mt-3 text-creo-sm text-creo-gray-500">Aucun membre listé.</p>
+                    ) : (
+                      <div className="mt-3">
+                        <WorkspaceTeamList
+                          members={teamMembers}
+                          currentUserId={user.id}
+                          workspaceOwnerId={workspace.owner_id}
+                          viewerRole={viewerTeamRole}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           )}
           {section === "danger" && (
-            <Card className="space-y-4 border-creo-danger/30 p-6">
+            <div className="max-w-3xl space-y-4 rounded-xl border border-creo-danger/30 p-6">
               <h2 className="text-creo-md font-semibold text-creo-danger">
                 Zone de danger
               </h2>
               <p className="text-creo-sm text-creo-gray-500">
-                La suppression de workspace sera toujours confirmée par une
-                modale explicative.
+                La suppression est définitive. Une fenêtre de confirmation t’explique les conséquences
+                et demande de retaper le nom du workspace.
               </p>
-              <Button type="button" variant="danger" size="sm">
-                Supprimer le workspace
-              </Button>
-            </Card>
+              {!workspaceId || !workspace ? (
+                <p className="text-creo-sm text-creo-gray-500">Workspace introuvable.</p>
+              ) : (
+                <WorkspaceDeleteDangerZone
+                  workspaceName={workspace.name}
+                  isOwner={workspace.owner_id === user.id}
+                />
+              )}
+            </div>
           )}
         </div>
       </div>

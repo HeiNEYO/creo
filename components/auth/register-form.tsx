@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 import { signUpSchema } from "@/lib/auth/validation";
 import { setRememberPreferenceCookie } from "@/lib/supabase/auth-session-preference";
@@ -10,7 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function RegisterForm() {
+type RegisterFormProps = {
+  inviteToken?: string;
+  defaultEmail?: string;
+};
+
+export function RegisterForm({ inviteToken, defaultEmail }: RegisterFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -78,6 +84,10 @@ export function RegisterForm() {
         setPending(false);
         return;
       }
+      if (inviteToken?.trim()) {
+        window.location.assign(`/invite/${inviteToken.trim()}`);
+        return;
+      }
       let workspace: { error: string | null };
       try {
         workspace = await ensureDefaultWorkspaceFromBrowser(supabase);
@@ -91,18 +101,30 @@ export function RegisterForm() {
         setPending(false);
         return;
       }
+      void fetch("/api/welcome-email", { method: "POST", credentials: "include" }).catch(
+        () => {}
+      );
       window.location.assign("/dashboard");
       return;
     }
 
     setSuccess(
-      "Compte créé. Si la confirmation par email est activée, vérifie ta boîte de réception pour te connecter."
+      "Compte créé. Si la confirmation par email est activée dans Supabase, ouvre le lien reçu par email avant de te connecter. Sinon, connecte-toi avec ton mot de passe."
     );
     setPending(false);
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {inviteToken ? (
+        <p className="rounded-lg border border-creo-purple/25 bg-creo-purple-pale/40 px-3 py-2 text-creo-sm text-creo-gray-800 dark:text-foreground">
+          Inscription pour une <strong className="font-medium">invitation équipe</strong>. Après
+          création du compte, tu seras redirigé pour accepter l’invitation.{" "}
+          <Link href="/login" className="text-creo-purple underline">
+            Déjà un compte ? Se connecter
+          </Link>
+        </p>
+      ) : null}
       {error ? (
         <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
@@ -132,6 +154,9 @@ export function RegisterForm() {
           autoComplete="email"
           required
           placeholder="toi@exemple.com"
+          defaultValue={defaultEmail ?? ""}
+          readOnly={!!defaultEmail}
+          className={defaultEmail ? "bg-creo-gray-50 dark:bg-muted/40" : undefined}
         />
       </div>
       <div className="space-y-2">
@@ -142,9 +167,11 @@ export function RegisterForm() {
           type="password"
           autoComplete="new-password"
           required
-          minLength={8}
+          minLength={10}
         />
-        <p className="text-xs text-muted-foreground">Au moins 8 caractères.</p>
+        <p className="text-xs text-muted-foreground">
+          10 caractères minimum, majuscule, minuscule, chiffre et caractère spécial.
+        </p>
       </div>
       <label className="flex cursor-pointer items-center gap-2 text-creo-sm text-creo-gray-700 dark:text-muted-foreground">
         <input
@@ -155,6 +182,17 @@ export function RegisterForm() {
         />
         Se souvenir de moi sur cet appareil
       </label>
+      <p className="text-center text-creo-xs text-creo-gray-500 dark:text-muted-foreground">
+        En créant un compte, tu acceptes les{" "}
+        <Link href="/legal/conditions" className="text-creo-purple underline underline-offset-2">
+          conditions d’utilisation
+        </Link>{" "}
+        et la{" "}
+        <Link href="/legal/confidentialite" className="text-creo-purple underline underline-offset-2">
+          politique de confidentialité
+        </Link>
+        .
+      </p>
       <Button type="submit" className="w-full" size="lg" disabled={pending}>
         {pending ? "Création…" : "Créer mon compte"}
       </Button>

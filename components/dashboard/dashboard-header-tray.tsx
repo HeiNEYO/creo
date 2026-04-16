@@ -137,14 +137,14 @@ export function DashboardHeaderTray({
           ref={btnRef}
           type="button"
           onClick={() => setOpen((o) => !o)}
-          className="relative flex size-9 shrink-0 items-center justify-center rounded-lg text-white/90 transition-colors hover:bg-white/10"
+          className="relative flex size-9 shrink-0 items-center justify-center rounded-lg text-white/90 transition-colors hover:bg-white/10 dark:text-white/90 dark:hover:bg-white/10"
           aria-label="Notifications"
           aria-expanded={open}
           aria-haspopup="true"
         >
-          <CreoIconBell className="text-white/85" />
+          <CreoIconBell className="text-white/85 dark:text-white/85" />
           {unreadCount > 0 ? (
-            <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-[#0033ff] text-[10px] font-bold text-white ring-2 ring-[#1a1a1a]">
+            <span className="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground ring-2 ring-[var(--creo-surface-header)]">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           ) : null}
@@ -153,7 +153,7 @@ export function DashboardHeaderTray({
         {open ? (
           <div
             ref={panelRef}
-            className="absolute right-0 top-[calc(100%+6px)] z-[60] w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-xl border border-white/10 bg-[#252525] py-2 shadow-xl ring-1 ring-black/40 dark:bg-[#1c1c1c]"
+            className="absolute right-0 top-[calc(100%+6px)] z-[60] w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-xl border border-white/10 bg-[#252525] py-2 shadow-xl ring-1 ring-black/40 dark:bg-[var(--creo-surface-panel)]"
             role="menu"
           >
             <div className="flex items-center justify-between border-b border-white/10 px-3 pb-2">
@@ -192,7 +192,7 @@ export function DashboardHeaderTray({
                       >
                         {!n.read_at ? (
                           <span
-                            className="mr-1.5 inline-block size-1.5 rounded-full bg-[#6688ff]"
+                            className="mr-1.5 inline-block size-1.5 rounded-full bg-creo-blue-soft"
                             aria-hidden
                           />
                         ) : null}
@@ -216,12 +216,12 @@ export function DashboardHeaderTray({
       </div>
 
       <Link
-        href="/dashboard/profile"
+        href="/dashboard/settings?section=account"
         className="group flex size-9 shrink-0 items-center justify-center rounded-full transition-opacity hover:opacity-90"
-        title="Mon profil"
-        aria-label="Mon profil"
+        title="Mon compte"
+        aria-label="Mon compte"
       >
-        <span className="relative flex size-9 shrink-0 overflow-hidden rounded-full ring-2 ring-white/25 transition ring-offset-2 ring-offset-[#1a1a1a] group-hover:ring-white/40">
+        <span className="relative flex size-9 shrink-0 overflow-hidden rounded-full ring-2 ring-white/25 transition ring-offset-2 ring-offset-[var(--creo-surface-header)] group-hover:ring-white/45 dark:ring-white/25 dark:group-hover:ring-white/40">
           {showAvatarImage ? (
             // eslint-disable-next-line @next/next/no-img-element -- URL utilisateur (Gravatar, Storage…)
             <img

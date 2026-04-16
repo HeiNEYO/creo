@@ -1,0 +1,76 @@
+-- Si un utilisateur est owner d’un workspace sans ligne workspace_members (insert manuel,
+-- échec partiel, ancienne version), on répare au lieu de créer un second workspace.
+
+CREATE OR REPLACE FUNCTION public.ensure_default_workspace()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  uid uuid := auth.uid();
+  au text;
+  meta jsonb;
+  v_full_name text;
+  prefix text;
+  slug text;
+  new_id uuid;
+  repair_id uuid;
+BEGIN
+  IF uid IS NULL THEN
+    RAISE EXCEPTION 'not authenticated';
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM public.workspace_members wm WHERE wm.user_id = uid LIMIT 1) THEN
+    RETURN;
+  END IF;
+
+  SELECT w.id INTO repair_id
+  FROM public.workspaces w
+  WHERE w.owner_id = uid
+    AND NOT EXISTS (
+      SELECT 1
+      FROM public.workspace_members wm
+      WHERE wm.workspace_id = w.id
+        AND wm.user_id = uid
+    )
+  ORDER BY w.created_at ASC
+  LIMIT 1;
+
+  IF repair_id IS NOT NULL THEN
+    INSERT INTO public.workspace_members (workspace_id, user_id, role)
+    VALUES (repair_id, uid, 'owner')
+    ON CONFLICT (workspace_id, user_id) DO NOTHING;
+    RETURN;
+  END IF;
+
+  SELECT u.email, u.raw_user_meta_data
+  INTO au, meta
+  FROM auth.users u
+  WHERE u.id = uid;
+
+  v_full_name := nullif(trim(meta ->> 'full_name'), '');
+  IF v_full_name IS NOT NULL THEN
+    UPDATE public.profiles p
+    SET full_name = v_full_name
+    WHERE p.id = uid;
+  END IF;
+
+  prefix := lower(split_part(coalesce(au, ''), '@', 1));
+  prefix := regexp_replace(prefix, '[^a-z0-9]+', '-', 'g');
+  prefix := regexp_replace(prefix, '(^-+|-+$)', '', 'g');
+  IF prefix IS NULL OR prefix = '' THEN
+    prefix := 'workspace';
+  END IF;
+  prefix := left(prefix, 48);
+
+  slug := prefix || '-' || left(replace(gen_random_uuid()::text, '-', ''), 12);
+
+  INSERT INTO public.workspaces (name, slug, owner_id)
+  VALUES ('Mon workspace', slug, uid)
+  RETURNING id INTO new_id;
+
+  INSERT INTO public.workspace_members (workspace_id, user_id, role)
+  VALUES (new_id, uid, 'owner');
+END;
+$$;

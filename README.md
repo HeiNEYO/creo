@@ -46,9 +46,34 @@ Exemple utile pour l’app : RPC `ensure_default_workspace` (workspace par défa
 
 ## Déploiement (Vercel)
 
-1. **Recommandé** : importer le dépôt Git dans Vercel, branche de production `main`, puis configurer les mêmes variables que dans `.env.local` (onglet *Environment Variables*).
-2. **CLI** : `npx vercel deploy --prod` (depuis la racine du projet, compte déjà lié).
-3. **GitHub Actions** (optionnel) : définir la variable de dépôt `VERCEL_CI_ENABLED` à `true` et les secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` — voir [`.github/workflows/vercel-production.yml`](./.github/workflows/vercel-production.yml). Sinon laissez la variable absente ou à `false` pour éviter un workflow rouge si vous utilisez uniquement l’intégration Git Vercel.
+### Déploiement automatique à chaque modification (recommandé)
+
+Dès que tu **commit** et **push** sur la branche de production (souvent `main`), Vercel peut builder et publier **sans commande manuelle**.
+
+1. [Vercel Dashboard](https://vercel.com) → **Add New…** → **Project** → **Import Git Repository** (GitHub / GitLab / Bitbucket).
+2. Sélectionne ce dépôt, branche de production **`main`** (ou celle que tu utilises), framework **Next.js** détecté automatiquement.
+3. Copie les variables d’environnement (comme en local) dans **Settings → Environment Variables** pour **Production** (et Preview si besoin).
+4. Chaque **push** sur `main` déclenche un nouveau déploiement production. Les PR ouvrent en général un **Preview** automatique.
+
+**Important** : ne pas activer en parallèle le workflow GitHub Actions ci‑dessous **et** cette intégration Git native, sinon tu risques **deux déploiements** par push. Choisis l’un ou l’autre.
+
+### Déploiement manuel (CLI)
+
+Si le dépôt n’est pas lié à Vercel : à la racine du projet, compte déjà connecté (`vercel login`).
+
+```bash
+npm run deploy:vercel
+```
+
+### GitHub Actions (alternative au déploiement Git Vercel)
+
+Si tu préfères que ce soit **GitHub Actions** qui déploie (et que l’intégration Git **native Vercel est désactivée** ou sans doublon) :
+
+1. GitHub → **Settings → Secrets and variables → Actions** : ajoute `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` (voir [compte Vercel](https://vercel.com/account/tokens) et l’ID du projet dans les paramètres du projet).
+2. **Settings → Variables → Actions** : `VERCEL_CI_ENABLED` = `true`.
+3. Chaque **push** sur `main` exécute [`.github/workflows/vercel-production.yml`](./.github/workflows/vercel-production.yml).
+
+Sans `VERCEL_CI_ENABLED=true`, le workflow est **ignoré** (pas d’erreur rouge si tu utilises uniquement l’import Git Vercel).
 
 ## Scripts npm
 
@@ -58,6 +83,7 @@ Exemple utile pour l’app : RPC `ensure_default_workspace` (workspace par défa
 | `npm run build` | Build production |
 | `npm run start` | Lance le build local |
 | `npm run lint` | ESLint |
+| `npm run deploy:vercel` | Déploiement production via CLI (`vercel --prod --yes`) |
 
 ## Structure utile
 

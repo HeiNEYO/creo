@@ -29,11 +29,21 @@ function FormMessage({ state }: { state: AuthActionState }) {
   return null;
 }
 
-export function MagicLinkForm() {
+type MagicLinkFormProps = {
+  /** Chemin interne après clic sur le lien (ex. `/invite/TOKEN`). */
+  redirectNext?: string;
+};
+
+export function MagicLinkForm({ redirectNext }: MagicLinkFormProps) {
   const [state, formAction] = useFormState(magicLinkAction, emptyState);
+  const next =
+    redirectNext?.trim().startsWith("/") && !redirectNext.trim().startsWith("//")
+      ? redirectNext.trim()
+      : "/dashboard";
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
+      <input type="hidden" name="next" value={next} />
       <FormMessage state={state} />
       <div className="space-y-2">
         <Label htmlFor="magic-email">Email</Label>
