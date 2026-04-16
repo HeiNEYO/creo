@@ -50,7 +50,9 @@ export default async function LearnCoursePage({
   params: { courseSlug: string };
 }) {
   const supabase = createClient();
-  const slug = decodeURIComponent(params.courseSlug ?? "").trim();
+  const slug = decodeURIComponent(params.courseSlug ?? "")
+    .trim()
+    .toLowerCase();
   if (!slug) {
     notFound();
   }

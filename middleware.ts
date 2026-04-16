@@ -50,11 +50,7 @@ function trySubdomainRewrite(request: NextRequest): NextResponse | null {
 }
 
 function isProtectedPath(path: string) {
-  return (
-    path.startsWith("/dashboard") ||
-    path.startsWith("/builder") ||
-    path.startsWith("/learn")
-  );
+  return path.startsWith("/dashboard") || path.startsWith("/builder");
 }
 
 export async function middleware(request: NextRequest) {

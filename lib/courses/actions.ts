@@ -66,7 +66,7 @@ export async function updateCourseServer(input: {
     patch.access_type = input.access_type;
   }
   if (input.slug !== undefined) {
-    const s = input.slug?.trim();
+    const s = input.slug?.trim().toLowerCase();
     patch.slug = s && s.length > 0 ? s : null;
   }
   if (input.compare_at_price !== undefined) {
@@ -102,11 +102,13 @@ export async function updateCourseServer(input: {
   if (error) {
     if (
       error.message.includes("courses_workspace_slug_lower_unique") ||
+      error.message.includes("courses_published_slug_lower_global_unique") ||
       error.message.includes("duplicate key")
     ) {
       return {
         ok: false,
-        error: "Ce slug est déjà utilisé pour une autre formation du workspace.",
+        error:
+          "Ce slug est déjà utilisé (une autre formation publiée utilise la même URL /learn/…).",
       };
     }
     return { ok: false, error: error.message };
